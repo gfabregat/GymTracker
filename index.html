@@ -22,11 +22,6 @@
         }
         .serie-done { opacity: 0.4; pointer-events: none; }
         .serie-done input { pointer-events: none; }
-
-        /* Superserie: resalta el bloque activo */
-        .superset-block { transition: box-shadow 0.2s; }
-
-        /* Cronómetro: pulso rojo cuando llega a cero */
         @keyframes pulse-red {
             0%, 100% { background-color: rgb(127 29 29 / 0.4); }
             50%       { background-color: rgb(220 38 38 / 0.35); }
@@ -101,8 +96,6 @@
 
     <!-- ===================== PANTALLA 3: ENTRENAMIENTO EN VIVO ===================== -->
     <section id="screen-workout" class="hidden flex-col fade-in min-h-screen">
-
-        <!-- Header fijo del entrenamiento -->
         <header id="workout-header" class="sticky top-0 z-30 bg-slate-950/95 backdrop-blur-sm border-b border-slate-800/80 px-4 py-3">
             <div class="flex items-center gap-3">
                 <button id="btn-back" class="w-9 h-9 flex items-center justify-center rounded-xl bg-slate-800/80 hover:bg-slate-700 active:scale-95 transition-all shrink-0">
@@ -115,13 +108,11 @@
                     <p id="workout-subtitle" class="text-xs text-slate-500 font-medium"></p>
                 </div>
             </div>
-
-            <!-- === CRONÓMETRO (oculto por defecto, se muestra al hacer Check) === -->
+            <!-- Cronómetro -->
             <div id="timer-widget" class="hidden mt-3 bg-slate-800/80 border border-slate-700/50 rounded-2xl px-4 py-3">
                 <div class="flex items-center justify-between gap-3">
-                    <!-- Display tiempo -->
                     <div class="flex items-center gap-2 min-w-0">
-                        <div id="timer-icon" class="w-7 h-7 rounded-full bg-indigo-500/20 border border-indigo-500/30 flex items-center justify-center shrink-0">
+                        <div class="w-7 h-7 rounded-full bg-indigo-500/20 border border-indigo-500/30 flex items-center justify-center shrink-0">
                             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" class="w-3.5 h-3.5 text-indigo-400">
                                 <path fill-rule="evenodd" d="M10 18a8 8 0 1 0 0-16 8 8 0 0 0 0 16Zm.75-13a.75.75 0 0 0-1.5 0v5c0 .414.336.75.75.75h4a.75.75 0 0 0 0-1.5h-3.25V5Z" clip-rule="evenodd" />
                             </svg>
@@ -131,33 +122,47 @@
                             <p id="timer-display" class="text-2xl font-black tabular-nums text-slate-100 leading-none"></p>
                         </div>
                     </div>
-                    <!-- Controles -->
                     <div class="flex items-center gap-2 shrink-0">
-                        <button id="timer-plus" class="h-9 px-3 rounded-xl bg-slate-700/80 hover:bg-slate-600 text-slate-300 text-xs font-bold transition-all active:scale-95">+30s</button>
+                        <button id="timer-plus"  class="h-9 px-3 rounded-xl bg-slate-700/80 hover:bg-slate-600 text-slate-300 text-xs font-bold transition-all active:scale-95">+30s</button>
                         <button id="timer-pause" class="h-9 px-3 rounded-xl bg-slate-700/80 hover:bg-slate-600 text-slate-300 text-xs font-bold transition-all active:scale-95">Pausa</button>
-                        <button id="timer-skip" class="h-9 px-3 rounded-xl bg-slate-700/80 hover:bg-slate-600 text-slate-300 text-xs font-bold transition-all active:scale-95">Skip</button>
+                        <button id="timer-skip"  class="h-9 px-3 rounded-xl bg-slate-700/80 hover:bg-slate-600 text-slate-300 text-xs font-bold transition-all active:scale-95">Skip</button>
                     </div>
                 </div>
-                <!-- Barra de progreso -->
                 <div class="mt-2.5 h-1 bg-slate-700/60 rounded-full overflow-hidden">
                     <div id="timer-bar" class="h-full bg-indigo-500 rounded-full transition-all duration-1000"></div>
                 </div>
             </div>
         </header>
-
-        <!-- Cuerpo scrolleable -->
         <div id="exercises-container" class="flex-1 px-4 py-4 space-y-4 pb-36"></div>
-
-        <!-- Botón finalizar fijo al fondo -->
         <div class="fixed bottom-0 left-1/2 -translate-x-1/2 w-full max-w-md px-4 pb-6 pt-3 bg-gradient-to-t from-slate-950 via-slate-950/95 to-transparent z-20">
             <button id="btn-finish-workout" class="w-full bg-emerald-600 hover:bg-emerald-500 active:scale-[0.98] text-white font-bold py-4 rounded-2xl transition-all shadow-xl shadow-emerald-900/30 text-base tracking-wide border border-emerald-500/50">
                 Finalizar Entrenamiento
             </button>
         </div>
-
     </section>
 
-    <!-- ===================== MODAL DE CONFIRMACIÓN ===================== -->
+    <!-- ===================== PANTALLA 4: HISTORIAL GLOBAL ===================== -->
+    <section id="screen-history" class="hidden flex-col fade-in min-h-screen pb-24">
+        <header class="sticky top-0 z-30 bg-slate-950/95 backdrop-blur-sm border-b border-slate-800/80 px-4 py-4">
+            <h2 class="text-xl font-extrabold tracking-tight text-slate-100 mb-3">Historial Global</h2>
+            <!-- Barra de búsqueda -->
+            <div class="relative">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" class="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500 pointer-events-none">
+                    <path fill-rule="evenodd" d="M9 3.5a5.5 5.5 0 1 0 0 11 5.5 5.5 0 0 0 0-11ZM2 9a7 7 0 1 1 12.452 4.391l3.328 3.329a.75.75 0 1 1-1.06 1.06l-3.329-3.328A7 7 0 0 1 2 9Z" clip-rule="evenodd" />
+                </svg>
+                <input type="text" id="history-search" placeholder="Buscar ejercicio... (ej: Dominadas, Banca)"
+                    class="w-full bg-slate-800 border border-slate-700/60 rounded-xl pl-9 pr-4 py-2.5 text-sm text-slate-100 placeholder-slate-500 focus:outline-none focus:border-indigo-500/60 transition-colors" />
+                <button id="history-search-clear" class="hidden absolute right-3 top-1/2 -translate-y-1/2 text-slate-500 hover:text-slate-300 transition-colors">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" class="w-4 h-4">
+                        <path d="M6.28 5.22a.75.75 0 0 0-1.06 1.06L8.94 10l-3.72 3.72a.75.75 0 1 0 1.06 1.06L10 11.06l3.72 3.72a.75.75 0 1 0 1.06-1.06L11.06 10l3.72-3.72a.75.75 0 0 0-1.06-1.06L10 8.94 6.28 5.22Z" />
+                    </svg>
+                </button>
+            </div>
+        </header>
+        <div id="history-results" class="flex-1 px-4 py-4 space-y-2"></div>
+    </section>
+
+    <!-- ===================== MODAL GENÉRICO (confirmaciones) ===================== -->
     <div id="modal-overlay" class="hidden fixed inset-0 z-50 flex items-end justify-center px-4 pb-6" style="background:rgba(0,0,0,0.75)">
         <div class="w-full max-w-md bg-slate-900 border border-slate-700/80 rounded-2xl p-5 shadow-2xl fade-in">
             <p id="modal-title" class="text-base font-bold text-slate-100 mb-1"></p>
@@ -169,16 +174,36 @@
         </div>
     </div>
 
+    <!-- ===================== MODAL HISTORIAL CONTEXTUAL (lupa) ===================== -->
+    <div id="history-modal-overlay" class="hidden fixed inset-0 z-50 flex items-end justify-center px-4 pb-6" style="background:rgba(0,0,0,0.75)">
+        <div class="w-full max-w-md bg-slate-900 border border-slate-700/80 rounded-2xl shadow-2xl fade-in flex flex-col max-h-[75vh]">
+            <!-- Header del modal -->
+            <div class="flex items-center justify-between px-5 pt-5 pb-3 border-b border-slate-800 shrink-0">
+                <div class="min-w-0">
+                    <p class="text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-0.5">Historial</p>
+                    <p id="history-modal-title" class="text-sm font-bold text-slate-100 truncate"></p>
+                </div>
+                <button id="history-modal-close" class="w-8 h-8 flex items-center justify-center rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-400 transition-all active:scale-95 shrink-0 ml-3">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" class="w-4 h-4">
+                        <path d="M6.28 5.22a.75.75 0 0 0-1.06 1.06L8.94 10l-3.72 3.72a.75.75 0 1 0 1.06 1.06L10 11.06l3.72 3.72a.75.75 0 1 0 1.06-1.06L11.06 10l3.72-3.72a.75.75 0 0 0-1.06-1.06L10 8.94 6.28 5.22Z" />
+                    </svg>
+                </button>
+            </div>
+            <!-- Resultados scrolleables -->
+            <div id="history-modal-results" class="overflow-y-auto px-5 py-3 space-y-2 flex-1"></div>
+        </div>
+    </div>
+
     <!-- ===================== NAV INFERIOR ===================== -->
     <nav id="bottom-nav" class="hidden fixed bottom-0 left-1/2 -translate-x-1/2 w-full max-w-md bg-slate-900/90 backdrop-blur-md border-t border-slate-800/80 py-2.5 shadow-xl z-50 px-6">
         <div class="flex justify-around items-center">
-            <button id="nav-home" class="flex flex-col items-center gap-1 text-indigo-400 transition-colors">
+            <button id="nav-home" class="flex flex-col items-center gap-1 transition-colors">
                 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="w-5 h-5">
                     <path d="M11.47 3.841a.75.75 0 0 1 1.06 0l8.69 8.69a.75.75 0 1 1-1.06 1.06l-.22-.22v7.38a.75.75 0 0 1-.75.75h-4.5a.75.75 0 0 1-.75-.75v-4.5a.75.75 0 0 0-.75-.75h-1.5a.75.75 0 0 0-.75.75v4.5a.75.75 0 0 1-.75.75h-4.5a.75.75 0 0 1-.75-.75v-7.38l-.22.22a.75.75 0 1 1-1.06-1.06l8.69-8.69Z" />
                 </svg>
                 <span class="text-[10px] font-bold uppercase tracking-wide">Entrenos</span>
             </button>
-            <button class="flex flex-col items-center gap-1 text-slate-600 opacity-40 cursor-not-allowed" disabled>
+            <button id="nav-history" class="flex flex-col items-center gap-1 transition-colors">
                 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="w-5 h-5">
                     <path fill-rule="evenodd" d="M10.5 3.75a6.75 6.75 0 1 0 0 13.5 6.75 6.75 0 0 0 0-13.5ZM2.25 10.5a8.25 8.25 0 1 1 14.59 5.28l4.69 4.69a.75.75 0 1 1-1.06 1.06l-4.69-4.69A8.25 8.25 0 0 1 2.25 10.5Z" clip-rule="evenodd" />
                 </svg>
@@ -193,7 +218,7 @@
         </div>
     </nav>
 
-</div><!-- fin contenedor -->
+</div>
 
 <script>
 // =====================================================================
@@ -211,48 +236,71 @@ db.version(1).stores({
 let activeWeek        = 1;
 let activeSession     = null;
 let activeSessionWeek = null;
+let activeNavTab      = 'home'; // 'home' | 'history'
 
 // =====================================================================
 // 3. REFERENCIAS AL DOM
 // =====================================================================
 const ui = {
-    screenUpload:       document.getElementById('screen-upload'),
-    screenHome:         document.getElementById('screen-home'),
-    screenWorkout:      document.getElementById('screen-workout'),
-    bottomNav:          document.getElementById('bottom-nav'),
-    csvInput:           document.getElementById('csv-input'),
-    uploadError:        document.getElementById('upload-error'),
-    uploadLoading:      document.getElementById('upload-loading'),
-    errorText:          document.getElementById('error-text'),
-    weekTabs:           document.getElementById('week-tabs'),
-    workoutsContainer:  document.getElementById('workouts-container'),
-    workoutCount:       document.getElementById('workout-count'),
-    btnReset:           document.getElementById('btn-danger-reset'),
-    navHome:            document.getElementById('nav-home'),
+    screenUpload:          document.getElementById('screen-upload'),
+    screenHome:            document.getElementById('screen-home'),
+    screenWorkout:         document.getElementById('screen-workout'),
+    screenHistory:         document.getElementById('screen-history'),
+    bottomNav:             document.getElementById('bottom-nav'),
+    csvInput:              document.getElementById('csv-input'),
+    uploadError:           document.getElementById('upload-error'),
+    uploadLoading:         document.getElementById('upload-loading'),
+    errorText:             document.getElementById('error-text'),
+    weekTabs:              document.getElementById('week-tabs'),
+    workoutsContainer:     document.getElementById('workouts-container'),
+    workoutCount:          document.getElementById('workout-count'),
+    btnReset:              document.getElementById('btn-danger-reset'),
+    navHome:               document.getElementById('nav-home'),
+    navHistory:            document.getElementById('nav-history'),
     // Pantalla 3
-    btnBack:            document.getElementById('btn-back'),
-    workoutTitle:       document.getElementById('workout-title'),
-    workoutSubtitle:    document.getElementById('workout-subtitle'),
-    exercisesContainer: document.getElementById('exercises-container'),
-    btnFinish:          document.getElementById('btn-finish-workout'),
+    btnBack:               document.getElementById('btn-back'),
+    workoutTitle:          document.getElementById('workout-title'),
+    workoutSubtitle:       document.getElementById('workout-subtitle'),
+    exercisesContainer:    document.getElementById('exercises-container'),
+    btnFinish:             document.getElementById('btn-finish-workout'),
     // Cronómetro
-    timerWidget:        document.getElementById('timer-widget'),
-    timerDisplay:       document.getElementById('timer-display'),
-    timerBar:           document.getElementById('timer-bar'),
-    timerIcon:          document.getElementById('timer-icon'),
-    timerPlus:          document.getElementById('timer-plus'),
-    timerPause:         document.getElementById('timer-pause'),
-    timerSkip:          document.getElementById('timer-skip'),
-    // Modal
-    modalOverlay:       document.getElementById('modal-overlay'),
-    modalTitle:         document.getElementById('modal-title'),
-    modalBody:          document.getElementById('modal-body'),
-    modalCancel:        document.getElementById('modal-cancel'),
-    modalConfirm:       document.getElementById('modal-confirm'),
+    timerWidget:           document.getElementById('timer-widget'),
+    timerDisplay:          document.getElementById('timer-display'),
+    timerBar:              document.getElementById('timer-bar'),
+    timerPlus:             document.getElementById('timer-plus'),
+    timerPause:            document.getElementById('timer-pause'),
+    timerSkip:             document.getElementById('timer-skip'),
+    // Pantalla 4
+    historySearch:         document.getElementById('history-search'),
+    historySearchClear:    document.getElementById('history-search-clear'),
+    historyResults:        document.getElementById('history-results'),
+    // Modal confirmación
+    modalOverlay:          document.getElementById('modal-overlay'),
+    modalTitle:            document.getElementById('modal-title'),
+    modalBody:             document.getElementById('modal-body'),
+    modalCancel:           document.getElementById('modal-cancel'),
+    modalConfirm:          document.getElementById('modal-confirm'),
+    // Modal historial contextual
+    historyModalOverlay:   document.getElementById('history-modal-overlay'),
+    historyModalTitle:     document.getElementById('history-modal-title'),
+    historyModalResults:   document.getElementById('history-modal-results'),
+    historyModalClose:     document.getElementById('history-modal-close'),
 };
 
 // =====================================================================
-// 4. MODAL DE CONFIRMACIÓN (reemplaza confirm() nativo)
+// 4. UTILIDADES
+// =====================================================================
+function normalizeText(str) {
+    return String(str).toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+}
+
+function formatDate(isoString) {
+    const d = new Date(isoString);
+    return d.toLocaleDateString('es-AR', { day: '2-digit', month: 'short', year: 'numeric' });
+}
+
+// =====================================================================
+// 5. MODAL DE CONFIRMACIÓN
 // =====================================================================
 function showModal({ title, body, confirmLabel, confirmClass, onConfirm }) {
     ui.modalTitle.textContent   = title;
@@ -261,34 +309,26 @@ function showModal({ title, body, confirmLabel, confirmClass, onConfirm }) {
     ui.modalConfirm.className   = `flex-1 py-3 rounded-xl font-bold text-sm transition-all active:scale-95 ${confirmClass || 'bg-indigo-600 text-white'}`;
     ui.modalOverlay.classList.remove('hidden');
 
-    const doConfirm = async () => {
-        ui.modalOverlay.classList.add('hidden');
-        cleanup();
-        await onConfirm();
-    };
-    const doCancel = () => {
-        ui.modalOverlay.classList.add('hidden');
-        cleanup();
-    };
-    const cleanup = () => {
+    const doConfirm = async () => { cleanup(); ui.modalOverlay.classList.add('hidden'); await onConfirm(); };
+    const doCancel  = ()        => { cleanup(); ui.modalOverlay.classList.add('hidden'); };
+    const onOverlay = (e)       => { if (e.target === ui.modalOverlay) doCancel(); };
+    function cleanup() {
         ui.modalConfirm.removeEventListener('click', doConfirm);
         ui.modalCancel.removeEventListener('click', doCancel);
-        ui.modalOverlay.removeEventListener('click', overlayClick);
-    };
-    const overlayClick = (e) => { if (e.target === ui.modalOverlay) doCancel(); };
-
+        ui.modalOverlay.removeEventListener('click', onOverlay);
+    }
     ui.modalConfirm.addEventListener('click', doConfirm);
     ui.modalCancel.addEventListener('click', doCancel);
-    ui.modalOverlay.addEventListener('click', overlayClick);
+    ui.modalOverlay.addEventListener('click', onOverlay);
 }
 
 // =====================================================================
-// 5. CRONÓMETRO
+// 6. CRONÓMETRO
 // =====================================================================
-let timerInterval   = null;
-let timerRemaining  = 0;
-let timerTotal      = 0;
-let timerPaused     = false;
+let timerInterval  = null;
+let timerRemaining = 0;
+let timerTotal     = 0;
+let timerPaused    = false;
 
 function timerFormat(secs) {
     const m = Math.floor(secs / 60);
@@ -297,27 +337,21 @@ function timerFormat(secs) {
 }
 
 function timerStart(seconds) {
-    timerStop(); // limpiar cualquier timer anterior
+    timerStop();
     timerRemaining = seconds;
     timerTotal     = seconds;
     timerPaused    = false;
-
     ui.timerWidget.classList.remove('hidden', 'timer-alert');
-    ui.timerWidget.classList.add('bg-slate-800/80');
     ui.timerPause.textContent = 'Pausa';
     ui.timerBar.style.width   = '100%';
     ui.timerBar.classList.remove('bg-red-500');
     ui.timerBar.classList.add('bg-indigo-500');
     updateTimerDisplay();
-
     timerInterval = setInterval(() => {
         if (timerPaused) return;
         timerRemaining--;
         updateTimerDisplay();
-        if (timerRemaining <= 0) {
-            timerStop();
-            timerAlert();
-        }
+        if (timerRemaining <= 0) { timerStop(); timerAlert(); }
     }, 1000);
 }
 
@@ -326,25 +360,17 @@ function timerStop() {
 }
 
 function timerAlert() {
-    // Alerta visual: pulso rojo
     ui.timerDisplay.textContent = '¡Listo!';
     ui.timerBar.style.width     = '0%';
     ui.timerWidget.classList.add('timer-alert');
-    ui.timerWidget.classList.remove('bg-slate-800/80');
 }
 
 function updateTimerDisplay() {
     ui.timerDisplay.textContent = timerFormat(timerRemaining);
     const pct = timerTotal > 0 ? (timerRemaining / timerTotal) * 100 : 0;
     ui.timerBar.style.width = pct + '%';
-    // Barra roja cuando queda menos del 25%
-    if (pct < 25) {
-        ui.timerBar.classList.remove('bg-indigo-500');
-        ui.timerBar.classList.add('bg-red-500');
-    } else {
-        ui.timerBar.classList.add('bg-indigo-500');
-        ui.timerBar.classList.remove('bg-red-500');
-    }
+    if (pct < 25) { ui.timerBar.classList.replace('bg-indigo-500', 'bg-red-500'); }
+    else          { ui.timerBar.classList.replace('bg-red-500', 'bg-indigo-500'); }
 }
 
 function timerHide() {
@@ -353,18 +379,13 @@ function timerHide() {
     ui.timerWidget.classList.remove('timer-alert');
 }
 
-// Controles del cronómetro
 ui.timerPlus.addEventListener('click', () => {
     timerRemaining += 30;
     timerTotal = Math.max(timerTotal, timerRemaining);
     if (ui.timerWidget.classList.contains('timer-alert')) {
-        // Si estaba en alerta, reactivar
         ui.timerWidget.classList.remove('timer-alert');
-        ui.timerWidget.classList.add('bg-slate-800/80');
         timerStart(timerRemaining);
-    } else {
-        updateTimerDisplay();
-    }
+    } else { updateTimerDisplay(); }
 });
 ui.timerPause.addEventListener('click', () => {
     timerPaused = !timerPaused;
@@ -373,8 +394,16 @@ ui.timerPause.addEventListener('click', () => {
 ui.timerSkip.addEventListener('click', () => timerHide());
 
 // =====================================================================
-// 6. ORQUESTADOR PRINCIPAL
+// 7. NAVEGACIÓN
 // =====================================================================
+function setNavActive(tab) {
+    activeNavTab = tab;
+    const homeActive    = tab === 'home';
+    const historyActive = tab === 'history';
+    ui.navHome.className    = `flex flex-col items-center gap-1 transition-colors ${homeActive    ? 'text-indigo-400' : 'text-slate-500'}`;
+    ui.navHistory.className = `flex flex-col items-center gap-1 transition-colors ${historyActive ? 'text-indigo-400' : 'text-slate-500'}`;
+}
+
 async function runEngine() {
     try {
         const total = await db.Planificacion_Actual.count();
@@ -396,6 +425,8 @@ function showScreen(target) {
     ui.screenHome.classList.add('hidden');
     ui.screenWorkout.classList.add('hidden');
     ui.screenWorkout.classList.remove('flex-col');
+    ui.screenHistory.classList.add('hidden');
+    ui.screenHistory.classList.remove('flex-col');
     ui.bottomNav.classList.add('hidden');
 
     if (target === 'upload') {
@@ -403,14 +434,31 @@ function showScreen(target) {
     } else if (target === 'home') {
         ui.screenHome.classList.remove('hidden');
         ui.bottomNav.classList.remove('hidden');
+        setNavActive('home');
     } else if (target === 'workout') {
         ui.screenWorkout.classList.remove('hidden');
         ui.screenWorkout.classList.add('flex-col');
+    } else if (target === 'history') {
+        ui.screenHistory.classList.remove('hidden');
+        ui.screenHistory.classList.add('flex-col');
+        ui.bottomNav.classList.remove('hidden');
+        setNavActive('history');
     }
 }
 
+// Nav inferior
+ui.navHome.addEventListener('click', async () => {
+    showScreen('home');
+    buildWeekSelector();
+    await refreshWorkoutsView();
+});
+ui.navHistory.addEventListener('click', async () => {
+    showScreen('history');
+    await renderHistoryResults('');
+});
+
 // =====================================================================
-// 7. PARSER DE CSV
+// 8. PARSER DE CSV
 // =====================================================================
 function detectDelimiter(line) {
     return (line.match(/;/g) || []).length > (line.match(/,/g) || []).length ? ';' : ',';
@@ -440,14 +488,11 @@ function expandToSixWeeks(rows) {
 function processCSVText(rawText) {
     const lines = rawText.split(/\r?\n/).map(l => l.trim()).filter(l => l.length > 0);
     if (lines.length < 2) throw new Error('El archivo no contiene suficientes filas de datos.');
-
     const delimiter = detectDelimiter(lines[0]);
     const headers   = parseCSVLine(lines[0], delimiter).map(h => h.replace(/^["']|["']$/g, '').trim());
-
     const mandatory = ['Semana','Entrenamiento','Codigo_Orden','Ejercicio','Serie','Reps_Objetivo','Intensidad_Objetivo','Tempo','Descanso_Segundos'];
     const missing   = mandatory.filter(f => !headers.includes(f));
     if (missing.length) throw new Error(`Columnas faltantes en el CSV: ${missing.join(', ')}`);
-
     const payload = [];
     for (let i = 1; i < lines.length; i++) {
         const cols = parseCSVLine(lines[i], delimiter).map(c => c.replace(/^["']|["']$/g, ''));
@@ -464,14 +509,13 @@ function processCSVText(rawText) {
 }
 
 // =====================================================================
-// 8. EVENTO DE CARGA DEL CSV
+// 9. EVENTO DE CARGA DEL CSV
 // =====================================================================
 ui.csvInput.addEventListener('change', function(e) {
     const file = e.target.files[0];
     if (!file) return;
     ui.uploadError.classList.add('hidden');
     ui.uploadLoading.classList.remove('hidden');
-
     const reader = new FileReader();
     reader.onload = async function(evt) {
         try {
@@ -500,7 +544,7 @@ ui.csvInput.addEventListener('change', function(e) {
 });
 
 // =====================================================================
-// 9. PANTALLA 2: HOME
+// 10. PANTALLA 2: HOME
 // =====================================================================
 function buildWeekSelector() {
     ui.weekTabs.innerHTML = '';
@@ -527,7 +571,6 @@ function buildWeekSelector() {
 async function refreshWorkoutsView() {
     ui.workoutsContainer.innerHTML = '';
     const rows = await db.Planificacion_Actual.where('Semana').equals(activeWeek).toArray();
-
     if (!rows.length) {
         ui.workoutCount.textContent = '0';
         ui.workoutsContainer.innerHTML = `
@@ -536,11 +579,9 @@ async function refreshWorkoutsView() {
             </div>`;
         return;
     }
-
     const sessions = [];
     rows.forEach(r => { if (!sessions.includes(r.Entrenamiento)) sessions.push(r.Entrenamiento); });
     ui.workoutCount.textContent = sessions.length;
-
     for (const sessionName of sessions) {
         const sessionRows   = rows.filter(r => r.Entrenamiento === sessionName);
         const exerciseCount = new Set(sessionRows.map(r => r.Ejercicio)).size;
@@ -558,17 +599,14 @@ function buildWorkoutCard(sessionName, exerciseCount, seriesCount, hasSuperset, 
         'transition-all cursor-pointer active:scale-[0.99] group shadow-sm',
         isFinished ? 'border-emerald-500/20 hover:border-emerald-500/30' : 'border-slate-800/70 hover:border-slate-700/80'
     ].join(' ');
-
     const statusBadge = isFinished
         ? `<span class="px-2 py-0.5 rounded-md text-[10px] font-extrabold uppercase tracking-widest bg-emerald-500/10 text-emerald-400 border border-emerald-500/15">✓ Listo</span>`
         : `<span class="px-2 py-0.5 rounded-md text-[10px] font-extrabold uppercase tracking-widest bg-amber-500/10 text-amber-400 border border-amber-500/10">Pendiente</span>`;
-
     const supersetTag = hasSuperset
         ? `<span class="inline-flex items-center gap-1 text-[10px] font-semibold text-violet-400 bg-violet-500/10 border border-violet-500/15 px-1.5 py-0.5 rounded-md">
                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" fill="currentColor" class="w-2.5 h-2.5"><path d="M8 2a.75.75 0 0 1 .75.75v5.5a.75.75 0 0 1-1.5 0v-5.5A.75.75 0 0 1 8 2ZM3.04 6.998a.75.75 0 0 1 .062 1.059L2.058 9.125A3.75 3.75 0 0 0 8 13.124a3.75 3.75 0 0 0 5.942-3.999l-1.044-1.068a.75.75 0 1 1 1.083-1.037l1.044 1.068A5.25 5.25 0 0 1 8 14.625a5.25 5.25 0 0 1-7.025-5.537l1.006-1.031a.75.75 0 0 1 1.059-.059Z"/></svg>
                Superserie
            </span>` : '';
-
     card.innerHTML = `
         <div class="space-y-1.5 flex-1 min-w-0">
             <h3 class="font-bold text-base text-slate-100 group-hover:text-indigo-400 transition-colors truncate">${sessionName}</h3>
@@ -583,45 +621,32 @@ function buildWorkoutCard(sessionName, exerciseCount, seriesCount, hasSuperset, 
                 <path stroke-linecap="round" stroke-linejoin="round" d="M8.25 4.5l7.5 7.5-7.5 7.5" />
             </svg>
         </div>`;
-
     card.addEventListener('click', () => navigateToWorkout(sessionName, activeWeek));
     return card;
 }
 
 // =====================================================================
-// 10. PANTALLA 3: ENTRENAMIENTO EN VIVO
+// 11. PANTALLA 3: ENTRENAMIENTO EN VIVO
 // =====================================================================
-
-// Normaliza texto para comparación (minúsculas, sin acentos)
-function normalizeText(str) {
-    return str.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
-}
-
 async function navigateToWorkout(sessionName, semana) {
     activeSession     = sessionName;
     activeSessionWeek = semana;
     timerHide();
-
-    ui.workoutTitle.textContent    = sessionName;
-    ui.workoutSubtitle.textContent = `Semana ${semana}`;
+    ui.workoutTitle.textContent     = sessionName;
+    ui.workoutSubtitle.textContent  = `Semana ${semana}`;
     ui.exercisesContainer.innerHTML = '';
 
-    // Traer planificación de esta sesión
     const rows = await db.Planificacion_Actual
         .where('Semana').equals(semana)
         .and(r => r.Entrenamiento === sessionName)
         .toArray();
-
-    // Ordenar por Codigo_Orden (alfabético) y Serie
     rows.sort((a, b) => a.Codigo_Orden.localeCompare(b.Codigo_Orden) || a.Serie - b.Serie);
 
-    // Logs ya guardados para esta sesión/semana (para restaurar checks)
     const existingLogs = await db.Log_Ejecucion_Global
         .where('Entrenamiento').equals(sessionName)
         .and(r => r.Semana === semana)
         .toArray();
 
-    // Historial de la semana anterior (para referencia de progresión)
     const prevWeekLogs = semana > 1
         ? await db.Log_Ejecucion_Global
             .where('Entrenamiento').equals(sessionName)
@@ -629,24 +654,13 @@ async function navigateToWorkout(sessionName, semana) {
             .toArray()
         : [];
 
-    // === LÓGICA DE SUPERSERIES ===
-    // Agrupar por prefijo de letra (ej: "C" para C1 y C2)
-    // Bloques individuales: Codigo_Orden sin número final (A, B, C...)
-    // Bloques de superserie: todos los que comparten la misma letra base (A1+A2, C1+C2...)
-
-    // Extraer bloques únicos en orden
-    const blockKeys = []; // cada entrada es la letra base (ej: "A", "C") o el código exacto si es individual
-    const blockMap  = {}; // letra_base -> array de {Ejercicio, Codigo_Orden, series[]}
-
+    // Agrupar en bloques por letra base
+    const blockKeys = [];
+    const blockMap  = {};
     rows.forEach(row => {
         const isSuperset = /\d$/.test(row.Codigo_Orden);
         const baseKey    = isSuperset ? row.Codigo_Orden.replace(/\d+$/, '') : row.Codigo_Orden;
-
-        if (!blockMap[baseKey]) {
-            blockMap[baseKey] = { isSuperset, subgroups: {} };
-            blockKeys.push(baseKey);
-        }
-
+        if (!blockMap[baseKey]) { blockMap[baseKey] = { isSuperset, subgroups: {} }; blockKeys.push(baseKey); }
         const code = row.Codigo_Orden;
         if (!blockMap[baseKey].subgroups[code]) {
             blockMap[baseKey].subgroups[code] = { Ejercicio: row.Ejercicio, Codigo_Orden: code, series: [] };
@@ -654,23 +668,16 @@ async function navigateToWorkout(sessionName, semana) {
         blockMap[baseKey].subgroups[code].series.push(row);
     });
 
-    // Renderizar cada bloque
     blockKeys.forEach(baseKey => {
-        const block = blockMap[baseKey];
-        const subgroups = Object.values(block.subgroups); // ej: [{C1, series}, {C2, series}]
-
+        const block     = blockMap[baseKey];
+        const subgroups = Object.values(block.subgroups);
         if (!block.isSuperset) {
-            // Bloque individual normal
-            const exGroup = subgroups[0];
             ui.exercisesContainer.appendChild(
-                buildExerciseBlock(exGroup, false, existingLogs, prevWeekLogs)
+                buildExerciseBlock(subgroups[0], false, existingLogs, prevWeekLogs)
             );
         } else {
-            // Bloque de superserie: wrapper visual que agrupa C1 + C2
             const superWrapper = document.createElement('div');
             superWrapper.className = 'border border-violet-500/20 rounded-2xl overflow-hidden';
-
-            // Etiqueta de superserie
             const superLabel = document.createElement('div');
             superLabel.className = 'bg-violet-950/40 px-4 py-2 flex items-center gap-2 border-b border-violet-500/15';
             superLabel.innerHTML = `
@@ -679,25 +686,19 @@ async function navigateToWorkout(sessionName, semana) {
                 </svg>
                 <span class="text-[11px] font-bold text-violet-400 uppercase tracking-widest">Superserie ${baseKey}</span>`;
             superWrapper.appendChild(superLabel);
-
-            // === ALTERNANCIA: Serie 1 de C1 → Serie 1 de C2 → Serie 2 de C1 → Serie 2 de C2 ===
-            // Determinar el número máximo de series entre todos los subgrupos
             const maxSeries = Math.max(...subgroups.map(sg => sg.series.length));
-
             for (let serieIdx = 0; serieIdx < maxSeries; serieIdx++) {
                 subgroups.forEach(sg => {
                     if (serieIdx < sg.series.length) {
-                        const serieRow   = sg.series[serieIdx];
-                        const exBlock    = buildExerciseBlock(
-                            { Ejercicio: sg.Ejercicio, Codigo_Orden: sg.Codigo_Orden, series: [serieRow] },
-                            true, existingLogs, prevWeekLogs,
-                            serieIdx === 0 // mostrar header del ejercicio solo en la primera pasada
+                        superWrapper.appendChild(
+                            buildExerciseBlock(
+                                { Ejercicio: sg.Ejercicio, Codigo_Orden: sg.Codigo_Orden, series: [sg.series[serieIdx]] },
+                                true, existingLogs, prevWeekLogs, serieIdx === 0
+                            )
                         );
-                        superWrapper.appendChild(exBlock);
                     }
                 });
             }
-
             ui.exercisesContainer.appendChild(superWrapper);
         }
     });
@@ -706,35 +707,39 @@ async function navigateToWorkout(sessionName, semana) {
     window.scrollTo(0, 0);
 }
 
-// Construye el bloque visual de un ejercicio (o una iteración de superserie)
 function buildExerciseBlock(exGroup, isSuperset, existingLogs, prevWeekLogs, showHeader = true) {
     const { Ejercicio, Codigo_Orden, series } = exGroup;
-
     const block = document.createElement('div');
     block.className = isSuperset
         ? 'bg-violet-950/10 px-4 py-3 space-y-3'
         : 'bg-slate-900 border border-slate-800/70 rounded-2xl px-4 py-4 space-y-3';
 
     if (showHeader) {
-        // Cabecera: código + nombre
         const headerEl = document.createElement('div');
-        headerEl.className = 'flex items-start gap-2';
-        headerEl.innerHTML = `
-            <span class="shrink-0 mt-0.5 px-2 py-0.5 rounded-lg text-[11px] font-black tracking-wider ${isSuperset ? 'bg-violet-500/20 text-violet-300 border border-violet-500/20' : 'bg-indigo-500/15 text-indigo-300 border border-indigo-500/20'}">
-                ${Codigo_Orden}
-            </span>
-            <h3 class="font-bold text-sm text-slate-100 leading-snug">${Ejercicio}</h3>`;
-        block.appendChild(headerEl);
+        headerEl.className = 'flex items-start justify-between gap-2';
 
-        // Datos teóricos
-        const ref = series[0];
+        const ref            = series[0];
         const tempoDisplay   = ref.Tempo && ref.Tempo !== '0' && ref.Tempo !== '0000' ? ref.Tempo : '—';
         const descansoSecs   = ref.Descanso_Segundos;
         const descansoDisplay = descansoSecs
-            ? (descansoSecs >= 60
-                ? `${Math.floor(descansoSecs / 60)}min${descansoSecs % 60 > 0 ? descansoSecs % 60 + 's' : ''}`
-                : `${descansoSecs}s`)
+            ? (descansoSecs >= 60 ? `${Math.floor(descansoSecs/60)}min${descansoSecs%60>0?descansoSecs%60+'s':''}` : `${descansoSecs}s`)
             : '—';
+
+        headerEl.innerHTML = `
+            <div class="flex items-start gap-2 min-w-0 flex-1">
+                <span class="shrink-0 mt-0.5 px-2 py-0.5 rounded-lg text-[11px] font-black tracking-wider ${isSuperset ? 'bg-violet-500/20 text-violet-300 border border-violet-500/20' : 'bg-indigo-500/15 text-indigo-300 border border-indigo-500/20'}">
+                    ${Codigo_Orden}
+                </span>
+                <h3 class="font-bold text-sm text-slate-100 leading-snug">${Ejercicio}</h3>
+            </div>
+            <!-- Botón lupa -->
+            <button class="shrink-0 w-8 h-8 flex items-center justify-center rounded-xl bg-slate-800/80 hover:bg-slate-700 text-slate-400 hover:text-indigo-400 transition-all active:scale-95" data-action="history-lookup" data-ejercicio="${Ejercicio}">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" class="w-3.5 h-3.5">
+                    <path fill-rule="evenodd" d="M9 3.5a5.5 5.5 0 1 0 0 11 5.5 5.5 0 0 0 0-11ZM2 9a7 7 0 1 1 12.452 4.391l3.328 3.329a.75.75 0 1 1-1.06 1.06l-3.329-3.328A7 7 0 0 1 2 9Z" clip-rule="evenodd" />
+                </svg>
+            </button>`;
+
+        block.appendChild(headerEl);
 
         const metaEl = document.createElement('div');
         metaEl.className = 'flex gap-x-4 gap-y-0.5 flex-wrap px-1';
@@ -744,55 +749,55 @@ function buildExerciseBlock(exGroup, isSuperset, existingLogs, prevWeekLogs, sho
             <span class="text-[11px] text-slate-400"><span class="text-slate-500 font-medium">Tempo</span> ${tempoDisplay}</span>
             <span class="text-[11px] text-slate-400"><span class="text-slate-500 font-medium">Desc.</span> ${descansoDisplay}</span>`;
         block.appendChild(metaEl);
+        block.appendChild(Object.assign(document.createElement('div'), { className: 'border-t border-slate-800/60' }));
 
-        const divider = document.createElement('div');
-        divider.className = 'border-t border-slate-800/60';
-        block.appendChild(divider);
+        // Evento lupa
+        headerEl.querySelector('[data-action="history-lookup"]').addEventListener('click', (e) => {
+            e.stopPropagation();
+            openHistoryModal(Ejercicio);
+        });
+
     } else if (isSuperset) {
-        // En alternancia de superserie: mostrar nombre compacto sin header completo
         const compactHeader = document.createElement('div');
-        compactHeader.className = 'flex items-center gap-2 pt-1';
+        compactHeader.className = 'flex items-center justify-between gap-2 pt-1';
         compactHeader.innerHTML = `
-            <span class="shrink-0 px-2 py-0.5 rounded-lg text-[11px] font-black tracking-wider bg-violet-500/20 text-violet-300 border border-violet-500/20">${Codigo_Orden}</span>
-            <span class="text-sm font-bold text-slate-100">${Ejercicio}</span>`;
+            <div class="flex items-center gap-2 min-w-0 flex-1">
+                <span class="shrink-0 px-2 py-0.5 rounded-lg text-[11px] font-black tracking-wider bg-violet-500/20 text-violet-300 border border-violet-500/20">${Codigo_Orden}</span>
+                <span class="text-sm font-bold text-slate-100 truncate">${Ejercicio}</span>
+            </div>
+            <button class="shrink-0 w-8 h-8 flex items-center justify-center rounded-xl bg-slate-800/80 hover:bg-slate-700 text-slate-400 hover:text-indigo-400 transition-all active:scale-95" data-action="history-lookup" data-ejercicio="${Ejercicio}">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" class="w-3.5 h-3.5">
+                    <path fill-rule="evenodd" d="M9 3.5a5.5 5.5 0 1 0 0 11 5.5 5.5 0 0 0 0-11ZM2 9a7 7 0 1 1 12.452 4.391l3.328 3.329a.75.75 0 1 1-1.06 1.06l-3.329-3.328A7 7 0 0 1 2 9Z" clip-rule="evenodd" />
+                </svg>
+            </button>`;
+        compactHeader.querySelector('[data-action="history-lookup"]').addEventListener('click', (e) => {
+            e.stopPropagation();
+            openHistoryModal(Ejercicio);
+        });
         block.appendChild(compactHeader);
     }
 
-    // Filas de series
-    series.forEach(serieRow => {
-        block.appendChild(buildSerieRow(serieRow, existingLogs, prevWeekLogs));
-    });
-
+    series.forEach(serieRow => block.appendChild(buildSerieRow(serieRow, existingLogs, prevWeekLogs)));
     return block;
 }
 
-// Construye la fila interactiva de una serie
 function buildSerieRow(serieRow, existingLogs, prevWeekLogs) {
-    const existingLog = existingLogs.find(
-        l => l.Ejercicio === serieRow.Ejercicio && l.Serie === serieRow.Serie
-    );
-    const isDone = !!existingLog;
-
-    // Buscar referencia de la semana anterior para esta misma serie y ejercicio
-    const prevLog = prevWeekLogs.find(
-        l => normalizeText(l.Ejercicio) === normalizeText(serieRow.Ejercicio) && l.Serie === serieRow.Serie
-    );
+    const existingLog = existingLogs.find(l => l.Ejercicio === serieRow.Ejercicio && l.Serie === serieRow.Serie);
+    const isDone      = !!existingLog;
+    const prevLog     = prevWeekLogs.find(l => normalizeText(l.Ejercicio) === normalizeText(serieRow.Ejercicio) && l.Serie === serieRow.Serie);
 
     const row = document.createElement('div');
     row.className = `space-y-1.5 ${isDone ? 'serie-done' : ''}`;
 
-    const pesoInicial = isDone ? (existingLog.Peso_Real ?? '') : '';
+    const pesoInicial = isDone ? (existingLog.Peso_Real   ?? '') : '';
     const repsInicial = isDone ? (existingLog.Reps_Reales ?? '') : '';
 
-    // Referencia semana anterior
     let prevHint = '';
     if (prevLog) {
         const partes = [];
         if (prevLog.Peso_Real   != null) partes.push(`${prevLog.Peso_Real}kg`);
         if (prevLog.Reps_Reales != null) partes.push(`${prevLog.Reps_Reales} reps`);
-        if (partes.length) {
-            prevHint = `<p class="text-[10px] text-slate-500 px-1">S${activeSessionWeek - 1}: <span class="text-slate-400 font-semibold">${partes.join(' · ')}</span></p>`;
-        }
+        if (partes.length) prevHint = `<p class="text-[10px] text-slate-500 px-1">S${activeSessionWeek-1}: <span class="text-slate-400 font-semibold">${partes.join(' · ')}</span></p>`;
     }
 
     row.innerHTML = `
@@ -802,14 +807,12 @@ function buildSerieRow(serieRow, existingLogs, prevWeekLogs) {
             <div class="flex-1 flex gap-2">
                 <div class="flex-1 relative">
                     <input type="number" inputmode="decimal" placeholder="kg" value="${pesoInicial}"
-                        class="w-full bg-slate-800 border border-slate-700/60 rounded-xl px-3 py-2.5 text-base font-bold text-center text-slate-100 placeholder-slate-600 focus:outline-none focus:border-indigo-500/60 transition-colors"
-                        data-field="peso" />
+                        class="w-full bg-slate-800 border border-slate-700/60 rounded-xl px-3 py-2.5 text-base font-bold text-center text-slate-100 placeholder-slate-600 focus:outline-none focus:border-indigo-500/60 transition-colors" data-field="peso" />
                     <span class="absolute right-2.5 top-1/2 -translate-y-1/2 text-[10px] text-slate-500 pointer-events-none">kg</span>
                 </div>
                 <div class="flex-1">
                     <input type="number" inputmode="numeric" placeholder="reps" value="${repsInicial}"
-                        class="w-full bg-slate-800 border border-slate-700/60 rounded-xl px-3 py-2.5 text-base font-bold text-center text-slate-100 placeholder-slate-600 focus:outline-none focus:border-indigo-500/60 transition-colors"
-                        data-field="reps" />
+                        class="w-full bg-slate-800 border border-slate-700/60 rounded-xl px-3 py-2.5 text-base font-bold text-center text-slate-100 placeholder-slate-600 focus:outline-none focus:border-indigo-500/60 transition-colors" data-field="reps" />
                 </div>
             </div>
             <button class="shrink-0 w-11 h-11 flex items-center justify-center rounded-xl transition-all active:scale-90 ${isDone ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/20' : 'bg-slate-800 hover:bg-indigo-600 text-slate-400 hover:text-white border border-slate-700/60 hover:border-indigo-500'}"
@@ -824,7 +827,6 @@ function buildSerieRow(serieRow, existingLogs, prevWeekLogs) {
     return row;
 }
 
-// Guarda la serie, atenúa la fila y dispara el cronómetro
 async function handleCheckSerie(rowEl, serieRow) {
     const pesoInput = rowEl.querySelector('[data-field="peso"]');
     const repsInput = rowEl.querySelector('[data-field="reps"]');
@@ -852,17 +854,129 @@ async function handleCheckSerie(rowEl, serieRow) {
 
     rowEl.classList.add('serie-done');
     const btn = rowEl.querySelector('[data-action="check"]');
-    btn.disabled = true;
+    btn.disabled  = true;
     btn.className = 'shrink-0 w-11 h-11 flex items-center justify-center rounded-xl bg-emerald-500/20 text-emerald-400 border border-emerald-500/20 transition-all';
 
-    // Disparar cronómetro con el tiempo de descanso de esta serie
-    if (serieRow.Descanso_Segundos > 0) {
-        timerStart(serieRow.Descanso_Segundos);
-    }
+    if (serieRow.Descanso_Segundos > 0) timerStart(serieRow.Descanso_Segundos);
 }
 
 // =====================================================================
-// 11. BOTONES DE PANTALLA 3
+// 12. HISTORIAL CONTEXTUAL (modal lupa)
+// =====================================================================
+async function openHistoryModal(ejercicioNombre) {
+    ui.historyModalTitle.textContent  = ejercicioNombre;
+    ui.historyModalResults.innerHTML  = '<p class="text-xs text-slate-500 text-center py-4">Buscando...</p>';
+    ui.historyModalOverlay.classList.remove('hidden');
+
+    const query  = normalizeText(ejercicioNombre);
+    const allLogs = await db.Log_Ejecucion_Global.orderBy('Fecha').reverse().toArray();
+    // Buscar por palabras clave: split en palabras y verificar que todas estén en el nombre normalizado
+    const keywords = query.split(/\s+/).filter(w => w.length > 2);
+    const matches  = allLogs.filter(l => {
+        const norm = normalizeText(l.Ejercicio);
+        return keywords.every(kw => norm.includes(kw));
+    }).slice(0, 50);
+
+    ui.historyModalResults.innerHTML = '';
+    if (!matches.length) {
+        ui.historyModalResults.innerHTML = `<p class="text-xs text-slate-500 text-center py-6">Sin registros previos para este ejercicio.</p>`;
+        return;
+    }
+    matches.forEach(log => ui.historyModalResults.appendChild(buildHistoryRow(log)));
+}
+
+ui.historyModalClose.addEventListener('click', () => ui.historyModalOverlay.classList.add('hidden'));
+ui.historyModalOverlay.addEventListener('click', (e) => {
+    if (e.target === ui.historyModalOverlay) ui.historyModalOverlay.classList.add('hidden');
+});
+
+// =====================================================================
+// 13. PANTALLA 4: HISTORIAL GLOBAL
+// =====================================================================
+let historySearchTimeout = null;
+
+ui.historySearch.addEventListener('input', () => {
+    const val = ui.historySearch.value.trim();
+    ui.historySearchClear.classList.toggle('hidden', val === '');
+    clearTimeout(historySearchTimeout);
+    historySearchTimeout = setTimeout(() => renderHistoryResults(val), 250);
+});
+
+ui.historySearchClear.addEventListener('click', () => {
+    ui.historySearch.value = '';
+    ui.historySearchClear.classList.add('hidden');
+    renderHistoryResults('');
+    ui.historySearch.focus();
+});
+
+async function renderHistoryResults(query) {
+    ui.historyResults.innerHTML = '<p class="text-xs text-slate-500 text-center py-6">Cargando...</p>';
+
+    const allLogs = await db.Log_Ejecucion_Global.orderBy('Fecha').reverse().toArray();
+    const norm    = normalizeText(query);
+
+    let filtered;
+    if (!norm) {
+        // Sin búsqueda: mostrar los últimos 50 registros
+        filtered = allLogs.slice(0, 50);
+    } else {
+        const keywords = norm.split(/\s+/).filter(w => w.length > 0);
+        filtered = allLogs
+            .filter(l => keywords.every(kw => normalizeText(l.Ejercicio).includes(kw)))
+            .slice(0, 50);
+    }
+
+    ui.historyResults.innerHTML = '';
+
+    if (!allLogs.length) {
+        ui.historyResults.innerHTML = `
+            <div class="flex flex-col items-center text-center p-8 border border-dashed border-slate-800 rounded-2xl mt-4">
+                <p class="text-sm text-slate-500 font-medium">Todavía no hay series registradas.</p>
+                <p class="text-xs text-slate-600 mt-1">Completá un entrenamiento para ver tu historial acá.</p>
+            </div>`;
+        return;
+    }
+
+    if (!filtered.length) {
+        ui.historyResults.innerHTML = `<p class="text-sm text-slate-500 text-center py-8">Sin resultados para "<span class="text-slate-400">${query}</span>".</p>`;
+        return;
+    }
+
+    // Mostrar contador
+    const counter = document.createElement('p');
+    counter.className = 'text-[11px] text-slate-600 font-medium px-1 pb-1';
+    counter.textContent = filtered.length < allLogs.length
+        ? `Mostrando ${filtered.length} resultado${filtered.length !== 1 ? 's' : ''}`
+        : `${filtered.length} registro${filtered.length !== 1 ? 's' : ''}`;
+    ui.historyResults.appendChild(counter);
+
+    filtered.forEach(log => ui.historyResults.appendChild(buildHistoryRow(log)));
+}
+
+// Construye una fila de resultado de historial (usada en modal y en pantalla 4)
+function buildHistoryRow(log) {
+    const row = document.createElement('div');
+    row.className = 'bg-slate-900 border border-slate-800/60 rounded-xl px-4 py-3 space-y-1';
+
+    const partes = [];
+    if (log.Peso_Real   != null) partes.push(`<span class="font-bold text-slate-200">${log.Peso_Real} kg</span>`);
+    if (log.Reps_Reales != null) partes.push(`<span class="font-bold text-slate-200">${log.Reps_Reales} reps</span>`);
+    const resultado = partes.length ? partes.join(' · ') : '<span class="text-slate-500">Sin datos</span>';
+
+    row.innerHTML = `
+        <div class="flex items-start justify-between gap-2">
+            <p class="text-xs font-semibold text-slate-300 leading-snug flex-1">${log.Ejercicio}</p>
+            <span class="text-[10px] text-slate-500 font-medium shrink-0 tabular-nums">Serie ${log.Serie}</span>
+        </div>
+        <div class="flex items-center justify-between gap-2">
+            <p class="text-sm">${resultado}</p>
+            <p class="text-[10px] text-slate-500">${formatDate(log.Fecha)}</p>
+        </div>`;
+    return row;
+}
+
+// =====================================================================
+// 14. BOTONES DE PANTALLA 3
 // =====================================================================
 ui.btnFinish.addEventListener('click', () => {
     showModal({
@@ -888,7 +1002,7 @@ ui.btnBack.addEventListener('click', async () => {
 });
 
 // =====================================================================
-// 12. RESETEO DEL PLAN
+// 15. RESETEO DEL PLAN
 // =====================================================================
 ui.btnReset.addEventListener('click', () => {
     showModal({
@@ -898,9 +1012,7 @@ ui.btnReset.addEventListener('click', () => {
         confirmClass: 'bg-red-600 text-white hover:bg-red-500',
         onConfirm:    async () => {
             await db.Planificacion_Actual.clear();
-            Object.keys(localStorage).forEach(k => {
-                if (k.startsWith('finished_')) localStorage.removeItem(k);
-            });
+            Object.keys(localStorage).forEach(k => { if (k.startsWith('finished_')) localStorage.removeItem(k); });
             localStorage.removeItem('activeWeek');
             runEngine();
         }
@@ -908,7 +1020,7 @@ ui.btnReset.addEventListener('click', () => {
 });
 
 // =====================================================================
-// 13. ARRANQUE
+// 16. ARRANQUE
 // =====================================================================
 runEngine();
 </script>
