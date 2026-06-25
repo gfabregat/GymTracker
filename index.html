@@ -3,6 +3,12 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <meta name="theme-color" content="#020617">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="Gym Tracker">
+    <link rel="manifest" href="#" id="manifest-placeholder">
     <title>Gym Tracker</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/dexie@4.0.10/dist/dexie.min.js"></script>
@@ -27,6 +33,8 @@
             50%       { background-color: rgb(220 38 38 / 0.35); }
         }
         .timer-alert { animation: pulse-red 1s ease-in-out infinite; }
+        /* Checkbox personalizado */
+        .custom-check { accent-color: #4f46e5; width: 1.1rem; height: 1.1rem; cursor: pointer; }
     </style>
 </head>
 <body class="bg-slate-950 text-slate-100 font-sans min-h-full flex flex-col antialiased selection:bg-indigo-500/30">
@@ -108,7 +116,6 @@
                     <p id="workout-subtitle" class="text-xs text-slate-500 font-medium"></p>
                 </div>
             </div>
-            <!-- Cronómetro -->
             <div id="timer-widget" class="hidden mt-3 bg-slate-800/80 border border-slate-700/50 rounded-2xl px-4 py-3">
                 <div class="flex items-center justify-between gap-3">
                     <div class="flex items-center gap-2 min-w-0">
@@ -145,13 +152,12 @@
     <section id="screen-history" class="hidden flex-col fade-in min-h-screen pb-24">
         <header class="sticky top-0 z-30 bg-slate-950/95 backdrop-blur-sm border-b border-slate-800/80 px-4 py-4">
             <h2 class="text-xl font-extrabold tracking-tight text-slate-100 mb-3">Historial Global</h2>
-            <!-- Barra de búsqueda -->
             <div class="relative">
                 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" class="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500 pointer-events-none">
                     <path fill-rule="evenodd" d="M9 3.5a5.5 5.5 0 1 0 0 11 5.5 5.5 0 0 0 0-11ZM2 9a7 7 0 1 1 12.452 4.391l3.328 3.329a.75.75 0 1 1-1.06 1.06l-3.329-3.328A7 7 0 0 1 2 9Z" clip-rule="evenodd" />
                 </svg>
                 <input type="text" id="history-search" placeholder="Buscar ejercicio... (ej: Dominadas, Banca)"
-                    class="w-full bg-slate-800 border border-slate-700/60 rounded-xl pl-9 pr-4 py-2.5 text-sm text-slate-100 placeholder-slate-500 focus:outline-none focus:border-indigo-500/60 transition-colors" />
+                    class="w-full bg-slate-800 border border-slate-700/60 rounded-xl pl-9 pr-9 py-2.5 text-sm text-slate-100 placeholder-slate-500 focus:outline-none focus:border-indigo-500/60 transition-colors" />
                 <button id="history-search-clear" class="hidden absolute right-3 top-1/2 -translate-y-1/2 text-slate-500 hover:text-slate-300 transition-colors">
                     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" class="w-4 h-4">
                         <path d="M6.28 5.22a.75.75 0 0 0-1.06 1.06L8.94 10l-3.72 3.72a.75.75 0 1 0 1.06 1.06L10 11.06l3.72 3.72a.75.75 0 1 0 1.06-1.06L11.06 10l3.72-3.72a.75.75 0 0 0-1.06-1.06L10 8.94 6.28 5.22Z" />
@@ -162,7 +168,104 @@
         <div id="history-results" class="flex-1 px-4 py-4 space-y-2"></div>
     </section>
 
-    <!-- ===================== MODAL GENÉRICO (confirmaciones) ===================== -->
+    <!-- ===================== PANTALLA 5: AJUSTES ===================== -->
+    <section id="screen-settings" class="hidden flex-col fade-in min-h-screen pb-24">
+        <header class="sticky top-0 z-30 bg-slate-950/95 backdrop-blur-sm border-b border-slate-800/80 px-4 py-4">
+            <h2 class="text-xl font-extrabold tracking-tight text-slate-100">Ajustes</h2>
+        </header>
+
+        <div class="px-4 py-5 space-y-4">
+
+            <!-- Sección: Copia de seguridad -->
+            <div>
+                <p class="text-[11px] font-bold text-slate-500 uppercase tracking-widest px-1 mb-3">Copia de Seguridad</p>
+
+                <!-- Exportar -->
+                <div class="bg-slate-900 border border-slate-800/70 rounded-2xl p-4 mb-3">
+                    <div class="flex items-start gap-3">
+                        <div class="w-9 h-9 rounded-xl bg-indigo-500/10 border border-indigo-500/20 flex items-center justify-center shrink-0">
+                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" class="w-4 h-4 text-indigo-400">
+                                <path d="M10.75 2.75a.75.75 0 0 0-1.5 0v8.614L6.295 8.235a.75.75 0 1 0-1.09 1.03l4.25 4.5a.75.75 0 0 0 1.09 0l4.25-4.5a.75.75 0 0 0-1.09-1.03l-2.955 3.129V2.75Z" />
+                                <path d="M3.5 12.75a.75.75 0 0 0-1.5 0v2.5A2.75 2.75 0 0 0 4.75 18h10.5A2.75 2.75 0 0 0 18 15.25v-2.5a.75.75 0 0 0-1.5 0v2.5c0 .69-.56 1.25-1.25 1.25H4.75c-.69 0-1.25-.56-1.25-1.25v-2.5Z" />
+                            </svg>
+                        </div>
+                        <div class="flex-1 min-w-0">
+                            <p class="text-sm font-bold text-slate-100">Exportar copia de seguridad</p>
+                            <p class="text-xs text-slate-500 mt-0.5 leading-relaxed">Descarga un archivo <code class="bg-slate-800 px-1 rounded text-indigo-300 font-mono text-[10px]">.json</code> con toda tu planificación e historial.</p>
+                        </div>
+                    </div>
+                    <button id="btn-export" class="mt-4 w-full py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-500 active:scale-[0.98] text-white text-sm font-bold transition-all border border-indigo-500/50">
+                        Exportar ahora
+                    </button>
+                </div>
+
+                <!-- Importar -->
+                <div class="bg-slate-900 border border-slate-800/70 rounded-2xl p-4">
+                    <div class="flex items-start gap-3">
+                        <div class="w-9 h-9 rounded-xl bg-amber-500/10 border border-amber-500/20 flex items-center justify-center shrink-0">
+                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" class="w-4 h-4 text-amber-400">
+                                <path d="M9.25 13.25a.75.75 0 0 0 1.5 0V4.636l2.955 3.129a.75.75 0 0 0 1.09-1.03l-4.25-4.5a.75.75 0 0 0-1.09 0l-4.25 4.5a.75.75 0 1 0 1.09 1.03L9.25 4.636v8.614Z" />
+                                <path d="M3.5 12.75a.75.75 0 0 0-1.5 0v2.5A2.75 2.75 0 0 0 4.75 18h10.5A2.75 2.75 0 0 0 18 15.25v-2.5a.75.75 0 0 0-1.5 0v2.5c0 .69-.56 1.25-1.25 1.25H4.75c-.69 0-1.25-.56-1.25-1.25v-2.5Z" />
+                            </svg>
+                        </div>
+                        <div class="flex-1 min-w-0">
+                            <p class="text-sm font-bold text-slate-100">Importar copia de seguridad</p>
+                            <p class="text-xs text-slate-500 mt-0.5 leading-relaxed">Restaura un backup <code class="bg-slate-800 px-1 rounded text-indigo-300 font-mono text-[10px]">.json</code> exportado previamente.</p>
+                        </div>
+                    </div>
+                    <label class="mt-4 block w-full py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 active:scale-[0.98] text-slate-200 text-sm font-bold transition-all border border-slate-700/50 text-center cursor-pointer">
+                        Seleccionar archivo
+                        <input type="file" id="import-input" accept=".json" class="hidden" />
+                    </label>
+                </div>
+            </div>
+
+            <!-- Sección: PWA -->
+            <div>
+                <p class="text-[11px] font-bold text-slate-500 uppercase tracking-widest px-1 mb-3">Instalación</p>
+                <div class="bg-slate-900 border border-slate-800/70 rounded-2xl p-4">
+                    <div class="flex items-start gap-3">
+                        <div class="w-9 h-9 rounded-xl bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center shrink-0">
+                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" class="w-4 h-4 text-emerald-400">
+                                <path fill-rule="evenodd" d="M10 1a.75.75 0 0 1 .75.75v1.5h1a2.75 2.75 0 0 1 0 5.5H10.75v1h1.5a.75.75 0 0 1 0 1.5h-1.5v1.5a.75.75 0 0 1-1.5 0V12.25H7.75a.75.75 0 0 1 0-1.5h1.5v-1H8a2.75 2.75 0 0 1 0-5.5h1.25v-1.5A.75.75 0 0 1 10 1ZM8 4.25a1.25 1.25 0 1 0 0 2.5h1.25v-2.5H8Zm3.75 2.5V4.25H13a1.25 1.25 0 1 1 0 2.5h-1.25Z" clip-rule="evenodd" />
+                            </svg>
+                        </div>
+                        <div class="flex-1">
+                            <p class="text-sm font-bold text-slate-100">Instalar como app</p>
+                            <p class="text-xs text-slate-500 mt-0.5 leading-relaxed">En Safari: <span class="text-slate-400">Compartir → Agregar a pantalla de inicio.</span> En Chrome: <span class="text-slate-400">Menú → Instalar app.</span></p>
+                        </div>
+                    </div>
+                    <div id="pwa-install-banner" class="hidden mt-4">
+                        <button id="btn-pwa-install" class="w-full py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 active:scale-[0.98] text-white text-sm font-bold transition-all border border-emerald-500/50">
+                            Instalar Gym Tracker
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Sección: Info -->
+            <div>
+                <p class="text-[11px] font-bold text-slate-500 uppercase tracking-widest px-1 mb-3">Información</p>
+                <div class="bg-slate-900 border border-slate-800/70 rounded-2xl divide-y divide-slate-800/60">
+                    <div class="flex justify-between items-center px-4 py-3">
+                        <span class="text-sm text-slate-400">Versión</span>
+                        <span class="text-sm font-mono text-slate-300">1.0.0</span>
+                    </div>
+                    <div id="settings-db-stats" class="flex justify-between items-center px-4 py-3">
+                        <span class="text-sm text-slate-400">Series registradas</span>
+                        <span id="stat-log-count" class="text-sm font-mono text-slate-300">—</span>
+                    </div>
+                    <div class="flex justify-between items-center px-4 py-3">
+                        <span class="text-sm text-slate-400">Ejercicios en ciclo</span>
+                        <span id="stat-plan-count" class="text-sm font-mono text-slate-300">—</span>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </section>
+
+    <!-- ===================== MODAL CONFIRMACIÓN ===================== -->
     <div id="modal-overlay" class="hidden fixed inset-0 z-50 flex items-end justify-center px-4 pb-6" style="background:rgba(0,0,0,0.75)">
         <div class="w-full max-w-md bg-slate-900 border border-slate-700/80 rounded-2xl p-5 shadow-2xl fade-in">
             <p id="modal-title" class="text-base font-bold text-slate-100 mb-1"></p>
@@ -174,10 +277,9 @@
         </div>
     </div>
 
-    <!-- ===================== MODAL HISTORIAL CONTEXTUAL (lupa) ===================== -->
+    <!-- ===================== MODAL HISTORIAL CONTEXTUAL ===================== -->
     <div id="history-modal-overlay" class="hidden fixed inset-0 z-50 flex items-end justify-center px-4 pb-6" style="background:rgba(0,0,0,0.75)">
         <div class="w-full max-w-md bg-slate-900 border border-slate-700/80 rounded-2xl shadow-2xl fade-in flex flex-col max-h-[75vh]">
-            <!-- Header del modal -->
             <div class="flex items-center justify-between px-5 pt-5 pb-3 border-b border-slate-800 shrink-0">
                 <div class="min-w-0">
                     <p class="text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-0.5">Historial</p>
@@ -189,8 +291,36 @@
                     </svg>
                 </button>
             </div>
-            <!-- Resultados scrolleables -->
             <div id="history-modal-results" class="overflow-y-auto px-5 py-3 space-y-2 flex-1"></div>
+        </div>
+    </div>
+
+    <!-- ===================== MODAL IMPORTAR (checkboxes) ===================== -->
+    <div id="import-modal-overlay" class="hidden fixed inset-0 z-50 flex items-end justify-center px-4 pb-6" style="background:rgba(0,0,0,0.75)">
+        <div class="w-full max-w-md bg-slate-900 border border-slate-700/80 rounded-2xl p-5 shadow-2xl fade-in">
+            <p class="text-base font-bold text-slate-100 mb-1">Importar copia de seguridad</p>
+            <p id="import-modal-meta" class="text-xs text-slate-500 mb-4"></p>
+            <p class="text-sm text-slate-400 mb-4">¿Qué querés restaurar?</p>
+            <div class="space-y-3 mb-5">
+                <label class="flex items-center gap-3 p-3 bg-slate-800/60 rounded-xl cursor-pointer">
+                    <input type="checkbox" id="import-check-log" class="custom-check" checked />
+                    <div>
+                        <p class="text-sm font-semibold text-slate-200">Historial de series</p>
+                        <p class="text-xs text-slate-500">Log_Ejecucion_Global — todos tus registros históricos</p>
+                    </div>
+                </label>
+                <label class="flex items-center gap-3 p-3 bg-slate-800/60 rounded-xl cursor-pointer">
+                    <input type="checkbox" id="import-check-plan" class="custom-check" />
+                    <div>
+                        <p class="text-sm font-semibold text-slate-200">Planificación del ciclo</p>
+                        <p class="text-xs text-slate-500">Planificacion_Actual — sobreescribe la rutina cargada</p>
+                    </div>
+                </label>
+            </div>
+            <div class="flex gap-3">
+                <button id="import-modal-cancel"  class="flex-1 py-3 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 font-semibold text-sm transition-all active:scale-95">Cancelar</button>
+                <button id="import-modal-confirm" class="flex-1 py-3 rounded-xl bg-amber-600 hover:bg-amber-500 text-white font-bold text-sm transition-all active:scale-95">Restaurar</button>
+            </div>
         </div>
     </div>
 
@@ -209,7 +339,7 @@
                 </svg>
                 <span class="text-[10px] font-bold uppercase tracking-wide">Historial</span>
             </button>
-            <button class="flex flex-col items-center gap-1 text-slate-600 opacity-40 cursor-not-allowed" disabled>
+            <button id="nav-settings" class="flex flex-col items-center gap-1 transition-colors">
                 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="w-5 h-5">
                     <path fill-rule="evenodd" d="M11.078 2.25c-.424 0-.751.344-.751.768v.114c0 .842-.48 1.608-1.248 1.968a3.742 3.742 0 0 1-1.166.356c-.787.117-1.554-.251-2.002-.89l-.06-.085a.75.75 0 0 0-1.163.153l-1.42 2.46a.75.75 0 0 0 .193 1.002l.076.053c.663.463.987 1.285.833 2.076A3.74 3.74 0 0 1 4.3 11.4c-.167.824-.814 1.464-1.644 1.614l-.085.015a.75.75 0 0 0-.614.739v2.886a.75.75 0 0 0 .614.739l.085.015c.83.15 1.477.79 1.644 1.615a3.74 3.74 0 0 1 .032 1.18c.154.791-.17 1.613-.833 2.076l-.076.053a.75.75 0 0 0-.193 1.002l1.42 2.46a.75.75 0 0 0 1.163.153l.06-.086c.448-.637 1.215-1.006 2.002-.89a3.741 3.741 0 0 1 1.166.356c.767.36 1.248 1.126 1.248 1.968v.114c0 .424.327.768.751.768h2.844c.424 0 .751-.344.751-.768v-.114c0-.842.48-1.608 1.248-1.968a3.742 3.742 0 0 1 1.166-.356c.788-.117 1.554.251 2.002.89l.06.085a.75.75 0 0 0 1.163-.153l1.42-2.46a.75.75 0 0 0-.193-1.002l-.076-.053c-.662-.463-.987-1.285-.832-2.076a3.741 3.741 0 0 1 .032-1.18c.167-.823.814-1.463 1.644-1.614l.085-.015a.75.75 0 0 0 .614-.739v-2.886a.75.75 0 0 0-.614-.739l-.085-.015c-.83-.15-1.477-.79-1.644-1.615a3.742 3.742 0 0 1-.032-1.18c-.155-.791.17-1.613.833-2.076l.076-.053a.75.75 0 0 0 .193-1.002l-1.42-2.46a.75.75 0 0 0-1.163-.153l-.06.086c-.448.638-1.215 1.006-2.002.89a3.743 3.743 0 0 1-1.166-.356c-.767-.36-1.248-1.126-1.248-1.968v-.114a.75.75 0 0 0-.751-.768h-2.844ZM12 15.75a3.75 3.75 0 1 0 0-7.5 3.75 3.75 0 0 0 0 7.5Z" clip-rule="evenodd" />
                 </svg>
@@ -222,7 +352,80 @@
 
 <script>
 // =====================================================================
-// 1. BASE DE DATOS (DEXIE.JS / INDEXEDDB)
+// 1. PWA: MANIFEST Y SERVICE WORKER
+// =====================================================================
+const MANIFEST = {
+    name: 'Gym Tracker',
+    short_name: 'Gym Tracker',
+    description: 'Seguimiento de rutinas de gimnasio offline',
+    start_url: './',
+    display: 'standalone',
+    background_color: '#020617',
+    theme_color: '#020617',
+    icons: [
+        { src: 'data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><rect width="100" height="100" rx="22" fill="%234f46e5"/><text y=".9em" font-size="72" x="50%" dominant-baseline="middle" text-anchor="middle">💪</text></svg>', sizes: '192x192', type: 'image/svg+xml' },
+        { src: 'data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><rect width="100" height="100" rx="22" fill="%234f46e5"/><text y=".9em" font-size="72" x="50%" dominant-baseline="middle" text-anchor="middle">💪</text></svg>', sizes: '512x512', type: 'image/svg+xml' }
+    ]
+};
+
+// Inyectar manifest como blob URL
+(function injectManifest() {
+    const blob = new Blob([JSON.stringify(MANIFEST)], { type: 'application/json' });
+    const url  = URL.createObjectURL(blob);
+    document.getElementById('manifest-placeholder').href = url;
+})();
+
+// Registrar Service Worker inline (inyectado como blob)
+const SW_CODE = `
+const CACHE = 'gymtracker-v1';
+const ASSETS = [self.location.href];
+
+self.addEventListener('install', e => {
+    e.waitUntil(
+        caches.open(CACHE).then(c => c.addAll(ASSETS)).then(() => self.skipWaiting())
+    );
+});
+
+self.addEventListener('activate', e => {
+    e.waitUntil(
+        caches.keys().then(keys =>
+            Promise.all(keys.filter(k => k !== CACHE).map(k => caches.delete(k)))
+        ).then(() => self.clients.claim())
+    );
+});
+
+self.addEventListener('fetch', e => {
+    e.respondWith(
+        caches.match(e.request).then(cached => cached || fetch(e.request).catch(() => cached))
+    );
+});
+`;
+
+if ('serviceWorker' in navigator) {
+    const swBlob = new Blob([SW_CODE], { type: 'application/javascript' });
+    const swUrl  = URL.createObjectURL(swBlob);
+    navigator.serviceWorker.register(swUrl, { scope: './' })
+        .then(() => console.log('[SW] Registrado'))
+        .catch(e => console.warn('[SW] Error:', e));
+}
+
+// Capturar evento de instalación PWA (Chrome)
+let pwaInstallEvent = null;
+window.addEventListener('beforeinstallprompt', (e) => {
+    e.preventDefault();
+    pwaInstallEvent = e;
+    document.getElementById('pwa-install-banner').classList.remove('hidden');
+});
+document.getElementById('btn-pwa-install').addEventListener('click', async () => {
+    if (!pwaInstallEvent) return;
+    pwaInstallEvent.prompt();
+    const { outcome } = await pwaInstallEvent.userChoice;
+    if (outcome === 'accepted') document.getElementById('pwa-install-banner').classList.add('hidden');
+    pwaInstallEvent = null;
+});
+
+// =====================================================================
+// 2. BASE DE DATOS (DEXIE.JS / INDEXEDDB)
 // =====================================================================
 const db = new Dexie('GymTrackerDB');
 db.version(1).stores({
@@ -231,21 +434,22 @@ db.version(1).stores({
 });
 
 // =====================================================================
-// 2. ESTADO GLOBAL
+// 3. ESTADO GLOBAL
 // =====================================================================
 let activeWeek        = 1;
 let activeSession     = null;
 let activeSessionWeek = null;
-let activeNavTab      = 'home'; // 'home' | 'history'
+let activeNavTab      = 'home';
 
 // =====================================================================
-// 3. REFERENCIAS AL DOM
+// 4. REFERENCIAS AL DOM
 // =====================================================================
 const ui = {
     screenUpload:          document.getElementById('screen-upload'),
     screenHome:            document.getElementById('screen-home'),
     screenWorkout:         document.getElementById('screen-workout'),
     screenHistory:         document.getElementById('screen-history'),
+    screenSettings:        document.getElementById('screen-settings'),
     bottomNav:             document.getElementById('bottom-nav'),
     csvInput:              document.getElementById('csv-input'),
     uploadError:           document.getElementById('upload-error'),
@@ -257,6 +461,7 @@ const ui = {
     btnReset:              document.getElementById('btn-danger-reset'),
     navHome:               document.getElementById('nav-home'),
     navHistory:            document.getElementById('nav-history'),
+    navSettings:           document.getElementById('nav-settings'),
     // Pantalla 3
     btnBack:               document.getElementById('btn-back'),
     workoutTitle:          document.getElementById('workout-title'),
@@ -274,6 +479,11 @@ const ui = {
     historySearch:         document.getElementById('history-search'),
     historySearchClear:    document.getElementById('history-search-clear'),
     historyResults:        document.getElementById('history-results'),
+    // Pantalla 5
+    btnExport:             document.getElementById('btn-export'),
+    importInput:           document.getElementById('import-input'),
+    statLogCount:          document.getElementById('stat-log-count'),
+    statPlanCount:         document.getElementById('stat-plan-count'),
     // Modal confirmación
     modalOverlay:          document.getElementById('modal-overlay'),
     modalTitle:            document.getElementById('modal-title'),
@@ -285,22 +495,39 @@ const ui = {
     historyModalTitle:     document.getElementById('history-modal-title'),
     historyModalResults:   document.getElementById('history-modal-results'),
     historyModalClose:     document.getElementById('history-modal-close'),
+    // Modal importar
+    importModalOverlay:    document.getElementById('import-modal-overlay'),
+    importModalMeta:       document.getElementById('import-modal-meta'),
+    importCheckLog:        document.getElementById('import-check-log'),
+    importCheckPlan:       document.getElementById('import-check-plan'),
+    importModalCancel:     document.getElementById('import-modal-cancel'),
+    importModalConfirm:    document.getElementById('import-modal-confirm'),
 };
 
 // =====================================================================
-// 4. UTILIDADES
+// 5. UTILIDADES
 // =====================================================================
 function normalizeText(str) {
     return String(str).toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
 }
-
 function formatDate(isoString) {
-    const d = new Date(isoString);
-    return d.toLocaleDateString('es-AR', { day: '2-digit', month: 'short', year: 'numeric' });
+    return new Date(isoString).toLocaleDateString('es-AR', { day: '2-digit', month: 'short', year: 'numeric' });
+}
+function toast(msg, color = 'indigo') {
+    const t = document.createElement('div');
+    const colors = {
+        indigo: 'bg-indigo-600 border-indigo-500/50',
+        emerald: 'bg-emerald-700 border-emerald-500/50',
+        red: 'bg-red-700 border-red-500/50',
+    };
+    t.className = `fixed top-5 left-1/2 -translate-x-1/2 z-[100] px-4 py-2.5 rounded-xl text-white text-sm font-semibold shadow-xl border ${colors[color] || colors.indigo} fade-in`;
+    t.textContent = msg;
+    document.body.appendChild(t);
+    setTimeout(() => t.remove(), 2800);
 }
 
 // =====================================================================
-// 5. MODAL DE CONFIRMACIÓN
+// 6. MODAL DE CONFIRMACIÓN
 // =====================================================================
 function showModal({ title, body, confirmLabel, confirmClass, onConfirm }) {
     ui.modalTitle.textContent   = title;
@@ -308,7 +535,6 @@ function showModal({ title, body, confirmLabel, confirmClass, onConfirm }) {
     ui.modalConfirm.textContent = confirmLabel || 'Confirmar';
     ui.modalConfirm.className   = `flex-1 py-3 rounded-xl font-bold text-sm transition-all active:scale-95 ${confirmClass || 'bg-indigo-600 text-white'}`;
     ui.modalOverlay.classList.remove('hidden');
-
     const doConfirm = async () => { cleanup(); ui.modalOverlay.classList.add('hidden'); await onConfirm(); };
     const doCancel  = ()        => { cleanup(); ui.modalOverlay.classList.add('hidden'); };
     const onOverlay = (e)       => { if (e.target === ui.modalOverlay) doCancel(); };
@@ -323,7 +549,7 @@ function showModal({ title, body, confirmLabel, confirmClass, onConfirm }) {
 }
 
 // =====================================================================
-// 6. CRONÓMETRO
+// 7. CRONÓMETRO
 // =====================================================================
 let timerInterval  = null;
 let timerRemaining = 0;
@@ -331,21 +557,16 @@ let timerTotal     = 0;
 let timerPaused    = false;
 
 function timerFormat(secs) {
-    const m = Math.floor(secs / 60);
-    const s = secs % 60;
+    const m = Math.floor(secs / 60), s = secs % 60;
     return m > 0 ? `${m}:${String(s).padStart(2, '0')}` : `${s}s`;
 }
-
 function timerStart(seconds) {
     timerStop();
-    timerRemaining = seconds;
-    timerTotal     = seconds;
-    timerPaused    = false;
+    timerRemaining = seconds; timerTotal = seconds; timerPaused = false;
     ui.timerWidget.classList.remove('hidden', 'timer-alert');
     ui.timerPause.textContent = 'Pausa';
-    ui.timerBar.style.width   = '100%';
-    ui.timerBar.classList.remove('bg-red-500');
-    ui.timerBar.classList.add('bg-indigo-500');
+    ui.timerBar.style.width = '100%';
+    ui.timerBar.classList.remove('bg-red-500'); ui.timerBar.classList.add('bg-indigo-500');
     updateTimerDisplay();
     timerInterval = setInterval(() => {
         if (timerPaused) return;
@@ -354,17 +575,12 @@ function timerStart(seconds) {
         if (timerRemaining <= 0) { timerStop(); timerAlert(); }
     }, 1000);
 }
-
-function timerStop() {
-    if (timerInterval) { clearInterval(timerInterval); timerInterval = null; }
-}
-
+function timerStop() { if (timerInterval) { clearInterval(timerInterval); timerInterval = null; } }
 function timerAlert() {
     ui.timerDisplay.textContent = '¡Listo!';
-    ui.timerBar.style.width     = '0%';
+    ui.timerBar.style.width = '0%';
     ui.timerWidget.classList.add('timer-alert');
 }
-
 function updateTimerDisplay() {
     ui.timerDisplay.textContent = timerFormat(timerRemaining);
     const pct = timerTotal > 0 ? (timerRemaining / timerTotal) * 100 : 0;
@@ -372,111 +588,82 @@ function updateTimerDisplay() {
     if (pct < 25) { ui.timerBar.classList.replace('bg-indigo-500', 'bg-red-500'); }
     else          { ui.timerBar.classList.replace('bg-red-500', 'bg-indigo-500'); }
 }
-
-function timerHide() {
-    timerStop();
-    ui.timerWidget.classList.add('hidden');
-    ui.timerWidget.classList.remove('timer-alert');
-}
+function timerHide() { timerStop(); ui.timerWidget.classList.add('hidden', 'timer-alert' ); ui.timerWidget.classList.remove('timer-alert'); }
 
 ui.timerPlus.addEventListener('click', () => {
-    timerRemaining += 30;
-    timerTotal = Math.max(timerTotal, timerRemaining);
-    if (ui.timerWidget.classList.contains('timer-alert')) {
-        ui.timerWidget.classList.remove('timer-alert');
-        timerStart(timerRemaining);
-    } else { updateTimerDisplay(); }
+    timerRemaining += 30; timerTotal = Math.max(timerTotal, timerRemaining);
+    if (ui.timerWidget.classList.contains('timer-alert')) { ui.timerWidget.classList.remove('timer-alert'); timerStart(timerRemaining); }
+    else updateTimerDisplay();
 });
-ui.timerPause.addEventListener('click', () => {
-    timerPaused = !timerPaused;
-    ui.timerPause.textContent = timerPaused ? 'Reanudar' : 'Pausa';
-});
+ui.timerPause.addEventListener('click', () => { timerPaused = !timerPaused; ui.timerPause.textContent = timerPaused ? 'Reanudar' : 'Pausa'; });
 ui.timerSkip.addEventListener('click', () => timerHide());
 
 // =====================================================================
-// 7. NAVEGACIÓN
+// 8. NAVEGACIÓN
 // =====================================================================
 function setNavActive(tab) {
     activeNavTab = tab;
-    const homeActive    = tab === 'home';
-    const historyActive = tab === 'history';
-    ui.navHome.className    = `flex flex-col items-center gap-1 transition-colors ${homeActive    ? 'text-indigo-400' : 'text-slate-500'}`;
-    ui.navHistory.className = `flex flex-col items-center gap-1 transition-colors ${historyActive ? 'text-indigo-400' : 'text-slate-500'}`;
+    ['home','history','settings'].forEach(t => {
+        const btn = ui[`nav${t.charAt(0).toUpperCase()+t.slice(1)}`];
+        btn.className = `flex flex-col items-center gap-1 transition-colors ${activeNavTab === t ? 'text-indigo-400' : 'text-slate-500'}`;
+    });
 }
 
 async function runEngine() {
     try {
         const total = await db.Planificacion_Actual.count();
-        if (total === 0) {
-            showScreen('upload');
-        } else {
+        if (total === 0) { showScreen('upload'); }
+        else {
             activeWeek = parseInt(localStorage.getItem('activeWeek') || '1', 10);
-            showScreen('home');
-            buildWeekSelector();
-            await refreshWorkoutsView();
+            showScreen('home'); buildWeekSelector(); await refreshWorkoutsView();
         }
-    } catch (err) {
-        alert('Error crítico al arrancar la app: ' + err.message);
-    }
+    } catch (err) { alert('Error crítico al arrancar la app: ' + err.message); }
 }
 
 function showScreen(target) {
-    ui.screenUpload.classList.add('hidden');
-    ui.screenHome.classList.add('hidden');
-    ui.screenWorkout.classList.add('hidden');
-    ui.screenWorkout.classList.remove('flex-col');
-    ui.screenHistory.classList.add('hidden');
-    ui.screenHistory.classList.remove('flex-col');
+    ['screenUpload','screenHome','screenWorkout','screenHistory','screenSettings'].forEach(id => {
+        ui[id].classList.add('hidden');
+        ui[id].classList.remove('flex-col');
+    });
     ui.bottomNav.classList.add('hidden');
 
     if (target === 'upload') {
         ui.screenUpload.classList.remove('hidden');
     } else if (target === 'home') {
         ui.screenHome.classList.remove('hidden');
-        ui.bottomNav.classList.remove('hidden');
-        setNavActive('home');
+        ui.bottomNav.classList.remove('hidden'); setNavActive('home');
     } else if (target === 'workout') {
-        ui.screenWorkout.classList.remove('hidden');
-        ui.screenWorkout.classList.add('flex-col');
+        ui.screenWorkout.classList.remove('hidden'); ui.screenWorkout.classList.add('flex-col');
     } else if (target === 'history') {
-        ui.screenHistory.classList.remove('hidden');
-        ui.screenHistory.classList.add('flex-col');
-        ui.bottomNav.classList.remove('hidden');
-        setNavActive('history');
+        ui.screenHistory.classList.remove('hidden'); ui.screenHistory.classList.add('flex-col');
+        ui.bottomNav.classList.remove('hidden'); setNavActive('history');
+    } else if (target === 'settings') {
+        ui.screenSettings.classList.remove('hidden'); ui.screenSettings.classList.add('flex-col');
+        ui.bottomNav.classList.remove('hidden'); setNavActive('settings');
+        refreshSettingsStats();
     }
 }
 
-// Nav inferior
-ui.navHome.addEventListener('click', async () => {
-    showScreen('home');
-    buildWeekSelector();
-    await refreshWorkoutsView();
-});
-ui.navHistory.addEventListener('click', async () => {
-    showScreen('history');
-    await renderHistoryResults('');
-});
+ui.navHome.addEventListener('click', async () => { showScreen('home'); buildWeekSelector(); await refreshWorkoutsView(); });
+ui.navHistory.addEventListener('click', async () => { showScreen('history'); await renderHistoryResults(''); });
+ui.navSettings.addEventListener('click', () => showScreen('settings'));
 
 // =====================================================================
-// 8. PARSER DE CSV
+// 9. PARSER DE CSV
 // =====================================================================
 function detectDelimiter(line) {
-    return (line.match(/;/g) || []).length > (line.match(/,/g) || []).length ? ';' : ',';
+    return (line.match(/;/g)||[]).length > (line.match(/,/g)||[]).length ? ';' : ',';
 }
-
 function parseCSVLine(line, delimiter) {
-    const result = [];
-    let current = '', inQuotes = false;
+    const result = []; let current = '', inQuotes = false;
     for (let i = 0; i < line.length; i++) {
         const ch = line[i];
         if (ch === '"') { inQuotes = !inQuotes; }
         else if (ch === delimiter && !inQuotes) { result.push(current.trim()); current = ''; }
         else { current += ch; }
     }
-    result.push(current.trim());
-    return result;
+    result.push(current.trim()); return result;
 }
-
 function expandToSixWeeks(rows) {
     const semanas = new Set(rows.map(r => r.Semana));
     if (semanas.size > 1) return rows;
@@ -484,23 +671,22 @@ function expandToSixWeeks(rows) {
     for (let s = 2; s <= 6; s++) rows.forEach(row => expanded.push({ ...row, Semana: s }));
     return expanded;
 }
-
 function processCSVText(rawText) {
     const lines = rawText.split(/\r?\n/).map(l => l.trim()).filter(l => l.length > 0);
     if (lines.length < 2) throw new Error('El archivo no contiene suficientes filas de datos.');
     const delimiter = detectDelimiter(lines[0]);
-    const headers   = parseCSVLine(lines[0], delimiter).map(h => h.replace(/^["']|["']$/g, '').trim());
+    const headers   = parseCSVLine(lines[0], delimiter).map(h => h.replace(/^["']|["']$/g,'').trim());
     const mandatory = ['Semana','Entrenamiento','Codigo_Orden','Ejercicio','Serie','Reps_Objetivo','Intensidad_Objetivo','Tempo','Descanso_Segundos'];
     const missing   = mandatory.filter(f => !headers.includes(f));
     if (missing.length) throw new Error(`Columnas faltantes en el CSV: ${missing.join(', ')}`);
     const payload = [];
     for (let i = 1; i < lines.length; i++) {
-        const cols = parseCSVLine(lines[i], delimiter).map(c => c.replace(/^["']|["']$/g, ''));
+        const cols = parseCSVLine(lines[i], delimiter).map(c => c.replace(/^["']|["']$/g,''));
         if (cols.length < headers.length) continue;
         const entry = {};
         headers.forEach((h, idx) => {
             const val = cols[idx] ?? '';
-            entry[h] = ['Semana','Serie','Descanso_Segundos'].includes(h) ? (parseInt(val, 10) || 0) : val;
+            entry[h] = ['Semana','Serie','Descanso_Segundos'].includes(h) ? (parseInt(val,10)||0) : val;
         });
         payload.push(entry);
     }
@@ -509,13 +695,11 @@ function processCSVText(rawText) {
 }
 
 // =====================================================================
-// 9. EVENTO DE CARGA DEL CSV
+// 10. EVENTO DE CARGA DEL CSV
 // =====================================================================
 ui.csvInput.addEventListener('change', function(e) {
-    const file = e.target.files[0];
-    if (!file) return;
-    ui.uploadError.classList.add('hidden');
-    ui.uploadLoading.classList.remove('hidden');
+    const file = e.target.files[0]; if (!file) return;
+    ui.uploadError.classList.add('hidden'); ui.uploadLoading.classList.remove('hidden');
     const reader = new FileReader();
     reader.onload = async function(evt) {
         try {
@@ -524,46 +708,30 @@ ui.csvInput.addEventListener('change', function(e) {
                 await db.Planificacion_Actual.clear();
                 await db.Planificacion_Actual.bulkAdd(parsedData);
             });
-            activeWeek = 1;
-            localStorage.setItem('activeWeek', '1');
+            activeWeek = 1; localStorage.setItem('activeWeek','1');
             await runEngine();
-        } catch (err) {
-            ui.uploadError.classList.remove('hidden');
-            ui.errorText.textContent = err.message;
-        } finally {
-            ui.uploadLoading.classList.add('hidden');
-            ui.csvInput.value = '';
-        }
+        } catch (err) { ui.uploadError.classList.remove('hidden'); ui.errorText.textContent = err.message; }
+        finally { ui.uploadLoading.classList.add('hidden'); ui.csvInput.value = ''; }
     };
     reader.onerror = () => {
-        ui.uploadLoading.classList.add('hidden');
-        ui.uploadError.classList.remove('hidden');
+        ui.uploadLoading.classList.add('hidden'); ui.uploadError.classList.remove('hidden');
         ui.errorText.textContent = 'No se pudo leer el archivo. Verificá que no esté dañado.';
     };
     reader.readAsText(file, 'UTF-8');
 });
 
 // =====================================================================
-// 10. PANTALLA 2: HOME
+// 11. PANTALLA 2: HOME
 // =====================================================================
 function buildWeekSelector() {
     ui.weekTabs.innerHTML = '';
     for (let w = 1; w <= 6; w++) {
         const btn = document.createElement('button');
-        btn.type = 'button';
-        btn.textContent = `S${w}`;
-        btn.className = [
-            'text-center py-2 text-xs font-black rounded-lg transition-all',
-            activeWeek === w
-                ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-600/20'
-                : 'text-slate-400 hover:text-slate-200 active:bg-slate-800/50'
+        btn.type = 'button'; btn.textContent = `S${w}`;
+        btn.className = ['text-center py-2 text-xs font-black rounded-lg transition-all',
+            activeWeek === w ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-600/20' : 'text-slate-400 hover:text-slate-200 active:bg-slate-800/50'
         ].join(' ');
-        btn.addEventListener('click', async () => {
-            activeWeek = w;
-            localStorage.setItem('activeWeek', String(w));
-            buildWeekSelector();
-            await refreshWorkoutsView();
-        });
+        btn.addEventListener('click', async () => { activeWeek = w; localStorage.setItem('activeWeek',String(w)); buildWeekSelector(); await refreshWorkoutsView(); });
         ui.weekTabs.appendChild(btn);
     }
 }
@@ -573,10 +741,7 @@ async function refreshWorkoutsView() {
     const rows = await db.Planificacion_Actual.where('Semana').equals(activeWeek).toArray();
     if (!rows.length) {
         ui.workoutCount.textContent = '0';
-        ui.workoutsContainer.innerHTML = `
-            <div class="flex flex-col justify-center items-center text-center p-8 border border-dashed border-slate-800 rounded-2xl min-h-[200px]">
-                <p class="text-sm text-slate-500 font-medium">Sin entrenamientos para la Semana ${activeWeek}.</p>
-            </div>`;
+        ui.workoutsContainer.innerHTML = `<div class="flex flex-col justify-center items-center text-center p-8 border border-dashed border-slate-800 rounded-2xl min-h-[200px]"><p class="text-sm text-slate-500 font-medium">Sin entrenamientos para la Semana ${activeWeek}.</p></div>`;
         return;
     }
     const sessions = [];
@@ -594,169 +759,95 @@ async function refreshWorkoutsView() {
 
 function buildWorkoutCard(sessionName, exerciseCount, seriesCount, hasSuperset, isFinished) {
     const card = document.createElement('div');
-    card.className = [
-        'bg-slate-900 border rounded-xl p-4 flex justify-between items-center',
-        'transition-all cursor-pointer active:scale-[0.99] group shadow-sm',
-        isFinished ? 'border-emerald-500/20 hover:border-emerald-500/30' : 'border-slate-800/70 hover:border-slate-700/80'
-    ].join(' ');
+    card.className = ['bg-slate-900 border rounded-xl p-4 flex justify-between items-center transition-all cursor-pointer active:scale-[0.99] group shadow-sm',
+        isFinished ? 'border-emerald-500/20 hover:border-emerald-500/30' : 'border-slate-800/70 hover:border-slate-700/80'].join(' ');
     const statusBadge = isFinished
         ? `<span class="px-2 py-0.5 rounded-md text-[10px] font-extrabold uppercase tracking-widest bg-emerald-500/10 text-emerald-400 border border-emerald-500/15">✓ Listo</span>`
         : `<span class="px-2 py-0.5 rounded-md text-[10px] font-extrabold uppercase tracking-widest bg-amber-500/10 text-amber-400 border border-amber-500/10">Pendiente</span>`;
     const supersetTag = hasSuperset
-        ? `<span class="inline-flex items-center gap-1 text-[10px] font-semibold text-violet-400 bg-violet-500/10 border border-violet-500/15 px-1.5 py-0.5 rounded-md">
-               <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" fill="currentColor" class="w-2.5 h-2.5"><path d="M8 2a.75.75 0 0 1 .75.75v5.5a.75.75 0 0 1-1.5 0v-5.5A.75.75 0 0 1 8 2ZM3.04 6.998a.75.75 0 0 1 .062 1.059L2.058 9.125A3.75 3.75 0 0 0 8 13.124a3.75 3.75 0 0 0 5.942-3.999l-1.044-1.068a.75.75 0 1 1 1.083-1.037l1.044 1.068A5.25 5.25 0 0 1 8 14.625a5.25 5.25 0 0 1-7.025-5.537l1.006-1.031a.75.75 0 0 1 1.059-.059Z"/></svg>
-               Superserie
-           </span>` : '';
+        ? `<span class="inline-flex items-center gap-1 text-[10px] font-semibold text-violet-400 bg-violet-500/10 border border-violet-500/15 px-1.5 py-0.5 rounded-md"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" fill="currentColor" class="w-2.5 h-2.5"><path d="M8 2a.75.75 0 0 1 .75.75v5.5a.75.75 0 0 1-1.5 0v-5.5A.75.75 0 0 1 8 2ZM3.04 6.998a.75.75 0 0 1 .062 1.059L2.058 9.125A3.75 3.75 0 0 0 8 13.124a3.75 3.75 0 0 0 5.942-3.999l-1.044-1.068a.75.75 0 1 1 1.083-1.037l1.044 1.068A5.25 5.25 0 0 1 8 14.625a5.25 5.25 0 0 1-7.025-5.537l1.006-1.031a.75.75 0 0 1 1.059-.059Z"/></svg>Superserie</span>` : '';
     card.innerHTML = `
         <div class="space-y-1.5 flex-1 min-w-0">
             <h3 class="font-bold text-base text-slate-100 group-hover:text-indigo-400 transition-colors truncate">${sessionName}</h3>
-            <div class="flex items-center gap-2 flex-wrap">
-                <p class="text-xs text-slate-400 font-medium">${exerciseCount} ejercicios · ${seriesCount} series</p>
-                ${supersetTag}
-            </div>
+            <div class="flex items-center gap-2 flex-wrap"><p class="text-xs text-slate-400 font-medium">${exerciseCount} ejercicios · ${seriesCount} series</p>${supersetTag}</div>
         </div>
-        <div class="flex items-center gap-3 ml-3 shrink-0">
-            ${statusBadge}
-            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor" class="w-4 h-4 text-slate-500 group-hover:translate-x-0.5 transition-transform">
-                <path stroke-linecap="round" stroke-linejoin="round" d="M8.25 4.5l7.5 7.5-7.5 7.5" />
-            </svg>
-        </div>`;
+        <div class="flex items-center gap-3 ml-3 shrink-0">${statusBadge}<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor" class="w-4 h-4 text-slate-500 group-hover:translate-x-0.5 transition-transform"><path stroke-linecap="round" stroke-linejoin="round" d="M8.25 4.5l7.5 7.5-7.5 7.5" /></svg></div>`;
     card.addEventListener('click', () => navigateToWorkout(sessionName, activeWeek));
     return card;
 }
 
 // =====================================================================
-// 11. PANTALLA 3: ENTRENAMIENTO EN VIVO
+// 12. PANTALLA 3: ENTRENAMIENTO EN VIVO
 // =====================================================================
 async function navigateToWorkout(sessionName, semana) {
-    activeSession     = sessionName;
-    activeSessionWeek = semana;
-    timerHide();
-    ui.workoutTitle.textContent     = sessionName;
-    ui.workoutSubtitle.textContent  = `Semana ${semana}`;
+    activeSession = sessionName; activeSessionWeek = semana; timerHide();
+    ui.workoutTitle.textContent = sessionName; ui.workoutSubtitle.textContent = `Semana ${semana}`;
     ui.exercisesContainer.innerHTML = '';
+    const rows = await db.Planificacion_Actual.where('Semana').equals(semana).and(r => r.Entrenamiento === sessionName).toArray();
+    rows.sort((a,b) => a.Codigo_Orden.localeCompare(b.Codigo_Orden) || a.Serie - b.Serie);
+    const existingLogs = await db.Log_Ejecucion_Global.where('Entrenamiento').equals(sessionName).and(r => r.Semana === semana).toArray();
+    const prevWeekLogs = semana > 1 ? await db.Log_Ejecucion_Global.where('Entrenamiento').equals(sessionName).and(r => r.Semana === semana-1).toArray() : [];
 
-    const rows = await db.Planificacion_Actual
-        .where('Semana').equals(semana)
-        .and(r => r.Entrenamiento === sessionName)
-        .toArray();
-    rows.sort((a, b) => a.Codigo_Orden.localeCompare(b.Codigo_Orden) || a.Serie - b.Serie);
-
-    const existingLogs = await db.Log_Ejecucion_Global
-        .where('Entrenamiento').equals(sessionName)
-        .and(r => r.Semana === semana)
-        .toArray();
-
-    const prevWeekLogs = semana > 1
-        ? await db.Log_Ejecucion_Global
-            .where('Entrenamiento').equals(sessionName)
-            .and(r => r.Semana === semana - 1)
-            .toArray()
-        : [];
-
-    // Agrupar en bloques por letra base
-    const blockKeys = [];
-    const blockMap  = {};
+    const blockKeys = [], blockMap = {};
     rows.forEach(row => {
         const isSuperset = /\d$/.test(row.Codigo_Orden);
-        const baseKey    = isSuperset ? row.Codigo_Orden.replace(/\d+$/, '') : row.Codigo_Orden;
+        const baseKey    = isSuperset ? row.Codigo_Orden.replace(/\d+$/,'') : row.Codigo_Orden;
         if (!blockMap[baseKey]) { blockMap[baseKey] = { isSuperset, subgroups: {} }; blockKeys.push(baseKey); }
         const code = row.Codigo_Orden;
-        if (!blockMap[baseKey].subgroups[code]) {
-            blockMap[baseKey].subgroups[code] = { Ejercicio: row.Ejercicio, Codigo_Orden: code, series: [] };
-        }
+        if (!blockMap[baseKey].subgroups[code]) blockMap[baseKey].subgroups[code] = { Ejercicio: row.Ejercicio, Codigo_Orden: code, series: [] };
         blockMap[baseKey].subgroups[code].series.push(row);
     });
 
     blockKeys.forEach(baseKey => {
-        const block     = blockMap[baseKey];
-        const subgroups = Object.values(block.subgroups);
+        const block = blockMap[baseKey], subgroups = Object.values(block.subgroups);
         if (!block.isSuperset) {
-            ui.exercisesContainer.appendChild(
-                buildExerciseBlock(subgroups[0], false, existingLogs, prevWeekLogs)
-            );
+            ui.exercisesContainer.appendChild(buildExerciseBlock(subgroups[0], false, existingLogs, prevWeekLogs));
         } else {
             const superWrapper = document.createElement('div');
             superWrapper.className = 'border border-violet-500/20 rounded-2xl overflow-hidden';
             const superLabel = document.createElement('div');
             superLabel.className = 'bg-violet-950/40 px-4 py-2 flex items-center gap-2 border-b border-violet-500/15';
-            superLabel.innerHTML = `
-                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" fill="currentColor" class="w-3 h-3 text-violet-400">
-                    <path d="M8 2a.75.75 0 0 1 .75.75v5.5a.75.75 0 0 1-1.5 0v-5.5A.75.75 0 0 1 8 2ZM3.04 6.998a.75.75 0 0 1 .062 1.059L2.058 9.125A3.75 3.75 0 0 0 8 13.124a3.75 3.75 0 0 0 5.942-3.999l-1.044-1.068a.75.75 0 1 1 1.083-1.037l1.044 1.068A5.25 5.25 0 0 1 8 14.625a5.25 5.25 0 0 1-7.025-5.537l1.006-1.031a.75.75 0 0 1 1.059-.059Z"/>
-                </svg>
-                <span class="text-[11px] font-bold text-violet-400 uppercase tracking-widest">Superserie ${baseKey}</span>`;
+            superLabel.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" fill="currentColor" class="w-3 h-3 text-violet-400"><path d="M8 2a.75.75 0 0 1 .75.75v5.5a.75.75 0 0 1-1.5 0v-5.5A.75.75 0 0 1 8 2ZM3.04 6.998a.75.75 0 0 1 .062 1.059L2.058 9.125A3.75 3.75 0 0 0 8 13.124a3.75 3.75 0 0 0 5.942-3.999l-1.044-1.068a.75.75 0 1 1 1.083-1.037l1.044 1.068A5.25 5.25 0 0 1 8 14.625a5.25 5.25 0 0 1-7.025-5.537l1.006-1.031a.75.75 0 0 1 1.059-.059Z"/></svg><span class="text-[11px] font-bold text-violet-400 uppercase tracking-widest">Superserie ${baseKey}</span>`;
             superWrapper.appendChild(superLabel);
             const maxSeries = Math.max(...subgroups.map(sg => sg.series.length));
             for (let serieIdx = 0; serieIdx < maxSeries; serieIdx++) {
                 subgroups.forEach(sg => {
-                    if (serieIdx < sg.series.length) {
-                        superWrapper.appendChild(
-                            buildExerciseBlock(
-                                { Ejercicio: sg.Ejercicio, Codigo_Orden: sg.Codigo_Orden, series: [sg.series[serieIdx]] },
-                                true, existingLogs, prevWeekLogs, serieIdx === 0
-                            )
-                        );
-                    }
+                    if (serieIdx < sg.series.length) superWrapper.appendChild(buildExerciseBlock({ Ejercicio: sg.Ejercicio, Codigo_Orden: sg.Codigo_Orden, series: [sg.series[serieIdx]] }, true, existingLogs, prevWeekLogs, serieIdx === 0));
                 });
             }
             ui.exercisesContainer.appendChild(superWrapper);
         }
     });
-
-    showScreen('workout');
-    window.scrollTo(0, 0);
+    showScreen('workout'); window.scrollTo(0,0);
 }
 
 function buildExerciseBlock(exGroup, isSuperset, existingLogs, prevWeekLogs, showHeader = true) {
     const { Ejercicio, Codigo_Orden, series } = exGroup;
     const block = document.createElement('div');
-    block.className = isSuperset
-        ? 'bg-violet-950/10 px-4 py-3 space-y-3'
-        : 'bg-slate-900 border border-slate-800/70 rounded-2xl px-4 py-4 space-y-3';
+    block.className = isSuperset ? 'bg-violet-950/10 px-4 py-3 space-y-3' : 'bg-slate-900 border border-slate-800/70 rounded-2xl px-4 py-4 space-y-3';
 
     if (showHeader) {
+        const ref = series[0];
+        const tempoDisplay    = ref.Tempo && ref.Tempo !== '0' && ref.Tempo !== '0000' ? ref.Tempo : '—';
+        const descansoSecs    = ref.Descanso_Segundos;
+        const descansoDisplay = descansoSecs ? (descansoSecs >= 60 ? `${Math.floor(descansoSecs/60)}min${descansoSecs%60>0?descansoSecs%60+'s':''}` : `${descansoSecs}s`) : '—';
         const headerEl = document.createElement('div');
         headerEl.className = 'flex items-start justify-between gap-2';
-
-        const ref            = series[0];
-        const tempoDisplay   = ref.Tempo && ref.Tempo !== '0' && ref.Tempo !== '0000' ? ref.Tempo : '—';
-        const descansoSecs   = ref.Descanso_Segundos;
-        const descansoDisplay = descansoSecs
-            ? (descansoSecs >= 60 ? `${Math.floor(descansoSecs/60)}min${descansoSecs%60>0?descansoSecs%60+'s':''}` : `${descansoSecs}s`)
-            : '—';
-
         headerEl.innerHTML = `
             <div class="flex items-start gap-2 min-w-0 flex-1">
-                <span class="shrink-0 mt-0.5 px-2 py-0.5 rounded-lg text-[11px] font-black tracking-wider ${isSuperset ? 'bg-violet-500/20 text-violet-300 border border-violet-500/20' : 'bg-indigo-500/15 text-indigo-300 border border-indigo-500/20'}">
-                    ${Codigo_Orden}
-                </span>
+                <span class="shrink-0 mt-0.5 px-2 py-0.5 rounded-lg text-[11px] font-black tracking-wider ${isSuperset ? 'bg-violet-500/20 text-violet-300 border border-violet-500/20' : 'bg-indigo-500/15 text-indigo-300 border border-indigo-500/20'}">${Codigo_Orden}</span>
                 <h3 class="font-bold text-sm text-slate-100 leading-snug">${Ejercicio}</h3>
             </div>
-            <!-- Botón lupa -->
-            <button class="shrink-0 w-8 h-8 flex items-center justify-center rounded-xl bg-slate-800/80 hover:bg-slate-700 text-slate-400 hover:text-indigo-400 transition-all active:scale-95" data-action="history-lookup" data-ejercicio="${Ejercicio}">
-                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" class="w-3.5 h-3.5">
-                    <path fill-rule="evenodd" d="M9 3.5a5.5 5.5 0 1 0 0 11 5.5 5.5 0 0 0 0-11ZM2 9a7 7 0 1 1 12.452 4.391l3.328 3.329a.75.75 0 1 1-1.06 1.06l-3.329-3.328A7 7 0 0 1 2 9Z" clip-rule="evenodd" />
-                </svg>
+            <button class="shrink-0 w-8 h-8 flex items-center justify-center rounded-xl bg-slate-800/80 hover:bg-slate-700 text-slate-400 hover:text-indigo-400 transition-all active:scale-95" data-action="history-lookup">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" class="w-3.5 h-3.5"><path fill-rule="evenodd" d="M9 3.5a5.5 5.5 0 1 0 0 11 5.5 5.5 0 0 0 0-11ZM2 9a7 7 0 1 1 12.452 4.391l3.328 3.329a.75.75 0 1 1-1.06 1.06l-3.329-3.328A7 7 0 0 1 2 9Z" clip-rule="evenodd" /></svg>
             </button>`;
-
+        headerEl.querySelector('[data-action="history-lookup"]').addEventListener('click', e => { e.stopPropagation(); openHistoryModal(Ejercicio); });
         block.appendChild(headerEl);
-
         const metaEl = document.createElement('div');
         metaEl.className = 'flex gap-x-4 gap-y-0.5 flex-wrap px-1';
-        metaEl.innerHTML = `
-            <span class="text-[11px] text-slate-400"><span class="text-slate-500 font-medium">Obj.</span> ${ref.Reps_Objetivo} reps</span>
-            <span class="text-[11px] text-slate-400"><span class="text-slate-500 font-medium">Int.</span> ${ref.Intensidad_Objetivo}</span>
-            <span class="text-[11px] text-slate-400"><span class="text-slate-500 font-medium">Tempo</span> ${tempoDisplay}</span>
-            <span class="text-[11px] text-slate-400"><span class="text-slate-500 font-medium">Desc.</span> ${descansoDisplay}</span>`;
+        metaEl.innerHTML = `<span class="text-[11px] text-slate-400"><span class="text-slate-500 font-medium">Obj.</span> ${ref.Reps_Objetivo} reps</span><span class="text-[11px] text-slate-400"><span class="text-slate-500 font-medium">Int.</span> ${ref.Intensidad_Objetivo}</span><span class="text-[11px] text-slate-400"><span class="text-slate-500 font-medium">Tempo</span> ${tempoDisplay}</span><span class="text-[11px] text-slate-400"><span class="text-slate-500 font-medium">Desc.</span> ${descansoDisplay}</span>`;
         block.appendChild(metaEl);
         block.appendChild(Object.assign(document.createElement('div'), { className: 'border-t border-slate-800/60' }));
-
-        // Evento lupa
-        headerEl.querySelector('[data-action="history-lookup"]').addEventListener('click', (e) => {
-            e.stopPropagation();
-            openHistoryModal(Ejercicio);
-        });
-
     } else if (isSuperset) {
         const compactHeader = document.createElement('div');
         compactHeader.className = 'flex items-center justify-between gap-2 pt-1';
@@ -765,18 +856,12 @@ function buildExerciseBlock(exGroup, isSuperset, existingLogs, prevWeekLogs, sho
                 <span class="shrink-0 px-2 py-0.5 rounded-lg text-[11px] font-black tracking-wider bg-violet-500/20 text-violet-300 border border-violet-500/20">${Codigo_Orden}</span>
                 <span class="text-sm font-bold text-slate-100 truncate">${Ejercicio}</span>
             </div>
-            <button class="shrink-0 w-8 h-8 flex items-center justify-center rounded-xl bg-slate-800/80 hover:bg-slate-700 text-slate-400 hover:text-indigo-400 transition-all active:scale-95" data-action="history-lookup" data-ejercicio="${Ejercicio}">
-                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" class="w-3.5 h-3.5">
-                    <path fill-rule="evenodd" d="M9 3.5a5.5 5.5 0 1 0 0 11 5.5 5.5 0 0 0 0-11ZM2 9a7 7 0 1 1 12.452 4.391l3.328 3.329a.75.75 0 1 1-1.06 1.06l-3.329-3.328A7 7 0 0 1 2 9Z" clip-rule="evenodd" />
-                </svg>
+            <button class="shrink-0 w-8 h-8 flex items-center justify-center rounded-xl bg-slate-800/80 hover:bg-slate-700 text-slate-400 hover:text-indigo-400 transition-all active:scale-95" data-action="history-lookup">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" class="w-3.5 h-3.5"><path fill-rule="evenodd" d="M9 3.5a5.5 5.5 0 1 0 0 11 5.5 5.5 0 0 0 0-11ZM2 9a7 7 0 1 1 12.452 4.391l3.328 3.329a.75.75 0 1 1-1.06 1.06l-3.329-3.328A7 7 0 0 1 2 9Z" clip-rule="evenodd" /></svg>
             </button>`;
-        compactHeader.querySelector('[data-action="history-lookup"]').addEventListener('click', (e) => {
-            e.stopPropagation();
-            openHistoryModal(Ejercicio);
-        });
+        compactHeader.querySelector('[data-action="history-lookup"]').addEventListener('click', e => { e.stopPropagation(); openHistoryModal(Ejercicio); });
         block.appendChild(compactHeader);
     }
-
     series.forEach(serieRow => block.appendChild(buildSerieRow(serieRow, existingLogs, prevWeekLogs)));
     return block;
 }
@@ -785,13 +870,10 @@ function buildSerieRow(serieRow, existingLogs, prevWeekLogs) {
     const existingLog = existingLogs.find(l => l.Ejercicio === serieRow.Ejercicio && l.Serie === serieRow.Serie);
     const isDone      = !!existingLog;
     const prevLog     = prevWeekLogs.find(l => normalizeText(l.Ejercicio) === normalizeText(serieRow.Ejercicio) && l.Serie === serieRow.Serie);
-
     const row = document.createElement('div');
     row.className = `space-y-1.5 ${isDone ? 'serie-done' : ''}`;
-
-    const pesoInicial = isDone ? (existingLog.Peso_Real   ?? '') : '';
+    const pesoInicial = isDone ? (existingLog.Peso_Real ?? '') : '';
     const repsInicial = isDone ? (existingLog.Reps_Reales ?? '') : '';
-
     let prevHint = '';
     if (prevLog) {
         const partes = [];
@@ -799,30 +881,23 @@ function buildSerieRow(serieRow, existingLogs, prevWeekLogs) {
         if (prevLog.Reps_Reales != null) partes.push(`${prevLog.Reps_Reales} reps`);
         if (partes.length) prevHint = `<p class="text-[10px] text-slate-500 px-1">S${activeSessionWeek-1}: <span class="text-slate-400 font-semibold">${partes.join(' · ')}</span></p>`;
     }
-
     row.innerHTML = `
         ${prevHint}
         <div class="flex items-center gap-3">
             <span class="w-7 text-center text-xs font-black text-slate-500 shrink-0">${serieRow.Serie}</span>
             <div class="flex-1 flex gap-2">
                 <div class="flex-1 relative">
-                    <input type="number" inputmode="decimal" placeholder="kg" value="${pesoInicial}"
-                        class="w-full bg-slate-800 border border-slate-700/60 rounded-xl px-3 py-2.5 text-base font-bold text-center text-slate-100 placeholder-slate-600 focus:outline-none focus:border-indigo-500/60 transition-colors" data-field="peso" />
+                    <input type="number" inputmode="decimal" placeholder="kg" value="${pesoInicial}" class="w-full bg-slate-800 border border-slate-700/60 rounded-xl px-3 py-2.5 text-base font-bold text-center text-slate-100 placeholder-slate-600 focus:outline-none focus:border-indigo-500/60 transition-colors" data-field="peso" />
                     <span class="absolute right-2.5 top-1/2 -translate-y-1/2 text-[10px] text-slate-500 pointer-events-none">kg</span>
                 </div>
                 <div class="flex-1">
-                    <input type="number" inputmode="numeric" placeholder="reps" value="${repsInicial}"
-                        class="w-full bg-slate-800 border border-slate-700/60 rounded-xl px-3 py-2.5 text-base font-bold text-center text-slate-100 placeholder-slate-600 focus:outline-none focus:border-indigo-500/60 transition-colors" data-field="reps" />
+                    <input type="number" inputmode="numeric" placeholder="reps" value="${repsInicial}" class="w-full bg-slate-800 border border-slate-700/60 rounded-xl px-3 py-2.5 text-base font-bold text-center text-slate-100 placeholder-slate-600 focus:outline-none focus:border-indigo-500/60 transition-colors" data-field="reps" />
                 </div>
             </div>
-            <button class="shrink-0 w-11 h-11 flex items-center justify-center rounded-xl transition-all active:scale-90 ${isDone ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/20' : 'bg-slate-800 hover:bg-indigo-600 text-slate-400 hover:text-white border border-slate-700/60 hover:border-indigo-500'}"
-                data-action="check" ${isDone ? 'disabled' : ''}>
-                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor" class="w-5 h-5">
-                    <path stroke-linecap="round" stroke-linejoin="round" d="m4.5 12.75 6 6 9-13.5" />
-                </svg>
+            <button class="shrink-0 w-11 h-11 flex items-center justify-center rounded-xl transition-all active:scale-90 ${isDone ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/20' : 'bg-slate-800 hover:bg-indigo-600 text-slate-400 hover:text-white border border-slate-700/60 hover:border-indigo-500'}" data-action="check" ${isDone ? 'disabled' : ''}>
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor" class="w-5 h-5"><path stroke-linecap="round" stroke-linejoin="round" d="m4.5 12.75 6 6 9-13.5" /></svg>
             </button>
         </div>`;
-
     row.querySelector('[data-action="check"]').addEventListener('click', () => handleCheckSerie(row, serieRow));
     return row;
 }
@@ -830,139 +905,74 @@ function buildSerieRow(serieRow, existingLogs, prevWeekLogs) {
 async function handleCheckSerie(rowEl, serieRow) {
     const pesoInput = rowEl.querySelector('[data-field="peso"]');
     const repsInput = rowEl.querySelector('[data-field="reps"]');
-    const peso = parseFloat(pesoInput.value);
-    const reps = parseInt(repsInput.value, 10);
-
+    const peso = parseFloat(pesoInput.value), reps = parseInt(repsInput.value, 10);
     if (isNaN(peso) && isNaN(reps)) {
-        [pesoInput, repsInput].forEach(el => {
-            el.classList.add('border-red-500/60');
-            setTimeout(() => el.classList.remove('border-red-500/60'), 1500);
-        });
+        [pesoInput, repsInput].forEach(el => { el.classList.add('border-red-500/60'); setTimeout(() => el.classList.remove('border-red-500/60'), 1500); });
         return;
     }
-
     await db.Log_Ejecucion_Global.add({
-        Fecha:         new Date().toISOString(),
-        Semana:        activeSessionWeek,
-        Entrenamiento: activeSession,
-        Ejercicio:     serieRow.Ejercicio,
-        Codigo_Orden:  serieRow.Codigo_Orden,
-        Serie:         serieRow.Serie,
-        Peso_Real:     isNaN(peso) ? null : peso,
-        Reps_Reales:   isNaN(reps) ? null : reps,
+        Fecha: new Date().toISOString(), Semana: activeSessionWeek, Entrenamiento: activeSession,
+        Ejercicio: serieRow.Ejercicio, Codigo_Orden: serieRow.Codigo_Orden, Serie: serieRow.Serie,
+        Peso_Real: isNaN(peso) ? null : peso, Reps_Reales: isNaN(reps) ? null : reps,
     });
-
     rowEl.classList.add('serie-done');
     const btn = rowEl.querySelector('[data-action="check"]');
-    btn.disabled  = true;
-    btn.className = 'shrink-0 w-11 h-11 flex items-center justify-center rounded-xl bg-emerald-500/20 text-emerald-400 border border-emerald-500/20 transition-all';
-
+    btn.disabled = true; btn.className = 'shrink-0 w-11 h-11 flex items-center justify-center rounded-xl bg-emerald-500/20 text-emerald-400 border border-emerald-500/20 transition-all';
     if (serieRow.Descanso_Segundos > 0) timerStart(serieRow.Descanso_Segundos);
 }
 
 // =====================================================================
-// 12. HISTORIAL CONTEXTUAL (modal lupa)
+// 13. HISTORIAL CONTEXTUAL
 // =====================================================================
 async function openHistoryModal(ejercicioNombre) {
-    ui.historyModalTitle.textContent  = ejercicioNombre;
-    ui.historyModalResults.innerHTML  = '<p class="text-xs text-slate-500 text-center py-4">Buscando...</p>';
+    ui.historyModalTitle.textContent = ejercicioNombre;
+    ui.historyModalResults.innerHTML = '<p class="text-xs text-slate-500 text-center py-4">Buscando...</p>';
     ui.historyModalOverlay.classList.remove('hidden');
-
-    const query  = normalizeText(ejercicioNombre);
-    const allLogs = await db.Log_Ejecucion_Global.orderBy('Fecha').reverse().toArray();
-    // Buscar por palabras clave: split en palabras y verificar que todas estén en el nombre normalizado
+    const query    = normalizeText(ejercicioNombre);
     const keywords = query.split(/\s+/).filter(w => w.length > 2);
-    const matches  = allLogs.filter(l => {
-        const norm = normalizeText(l.Ejercicio);
-        return keywords.every(kw => norm.includes(kw));
-    }).slice(0, 50);
-
+    const allLogs  = await db.Log_Ejecucion_Global.orderBy('Fecha').reverse().toArray();
+    const matches  = allLogs.filter(l => keywords.every(kw => normalizeText(l.Ejercicio).includes(kw))).slice(0, 50);
     ui.historyModalResults.innerHTML = '';
-    if (!matches.length) {
-        ui.historyModalResults.innerHTML = `<p class="text-xs text-slate-500 text-center py-6">Sin registros previos para este ejercicio.</p>`;
-        return;
-    }
+    if (!matches.length) { ui.historyModalResults.innerHTML = `<p class="text-xs text-slate-500 text-center py-6">Sin registros previos para este ejercicio.</p>`; return; }
     matches.forEach(log => ui.historyModalResults.appendChild(buildHistoryRow(log)));
 }
-
 ui.historyModalClose.addEventListener('click', () => ui.historyModalOverlay.classList.add('hidden'));
-ui.historyModalOverlay.addEventListener('click', (e) => {
-    if (e.target === ui.historyModalOverlay) ui.historyModalOverlay.classList.add('hidden');
-});
+ui.historyModalOverlay.addEventListener('click', e => { if (e.target === ui.historyModalOverlay) ui.historyModalOverlay.classList.add('hidden'); });
 
 // =====================================================================
-// 13. PANTALLA 4: HISTORIAL GLOBAL
+// 14. PANTALLA 4: HISTORIAL GLOBAL
 // =====================================================================
 let historySearchTimeout = null;
-
 ui.historySearch.addEventListener('input', () => {
     const val = ui.historySearch.value.trim();
     ui.historySearchClear.classList.toggle('hidden', val === '');
     clearTimeout(historySearchTimeout);
     historySearchTimeout = setTimeout(() => renderHistoryResults(val), 250);
 });
-
-ui.historySearchClear.addEventListener('click', () => {
-    ui.historySearch.value = '';
-    ui.historySearchClear.classList.add('hidden');
-    renderHistoryResults('');
-    ui.historySearch.focus();
-});
+ui.historySearchClear.addEventListener('click', () => { ui.historySearch.value = ''; ui.historySearchClear.classList.add('hidden'); renderHistoryResults(''); ui.historySearch.focus(); });
 
 async function renderHistoryResults(query) {
     ui.historyResults.innerHTML = '<p class="text-xs text-slate-500 text-center py-6">Cargando...</p>';
-
     const allLogs = await db.Log_Ejecucion_Global.orderBy('Fecha').reverse().toArray();
     const norm    = normalizeText(query);
-
-    let filtered;
-    if (!norm) {
-        // Sin búsqueda: mostrar los últimos 50 registros
-        filtered = allLogs.slice(0, 50);
-    } else {
-        const keywords = norm.split(/\s+/).filter(w => w.length > 0);
-        filtered = allLogs
-            .filter(l => keywords.every(kw => normalizeText(l.Ejercicio).includes(kw)))
-            .slice(0, 50);
-    }
-
+    let filtered  = !norm ? allLogs.slice(0, 50) : allLogs.filter(l => norm.split(/\s+/).filter(w=>w.length>0).every(kw => normalizeText(l.Ejercicio).includes(kw))).slice(0, 50);
     ui.historyResults.innerHTML = '';
-
-    if (!allLogs.length) {
-        ui.historyResults.innerHTML = `
-            <div class="flex flex-col items-center text-center p-8 border border-dashed border-slate-800 rounded-2xl mt-4">
-                <p class="text-sm text-slate-500 font-medium">Todavía no hay series registradas.</p>
-                <p class="text-xs text-slate-600 mt-1">Completá un entrenamiento para ver tu historial acá.</p>
-            </div>`;
-        return;
-    }
-
-    if (!filtered.length) {
-        ui.historyResults.innerHTML = `<p class="text-sm text-slate-500 text-center py-8">Sin resultados para "<span class="text-slate-400">${query}</span>".</p>`;
-        return;
-    }
-
-    // Mostrar contador
+    if (!allLogs.length) { ui.historyResults.innerHTML = `<div class="flex flex-col items-center text-center p-8 border border-dashed border-slate-800 rounded-2xl mt-4"><p class="text-sm text-slate-500 font-medium">Todavía no hay series registradas.</p><p class="text-xs text-slate-600 mt-1">Completá un entrenamiento para ver tu historial acá.</p></div>`; return; }
+    if (!filtered.length) { ui.historyResults.innerHTML = `<p class="text-sm text-slate-500 text-center py-8">Sin resultados para "<span class="text-slate-400">${query}</span>".</p>`; return; }
     const counter = document.createElement('p');
     counter.className = 'text-[11px] text-slate-600 font-medium px-1 pb-1';
-    counter.textContent = filtered.length < allLogs.length
-        ? `Mostrando ${filtered.length} resultado${filtered.length !== 1 ? 's' : ''}`
-        : `${filtered.length} registro${filtered.length !== 1 ? 's' : ''}`;
+    counter.textContent = `${filtered.length} resultado${filtered.length !== 1 ? 's' : ''}`;
     ui.historyResults.appendChild(counter);
-
     filtered.forEach(log => ui.historyResults.appendChild(buildHistoryRow(log)));
 }
 
-// Construye una fila de resultado de historial (usada en modal y en pantalla 4)
 function buildHistoryRow(log) {
     const row = document.createElement('div');
     row.className = 'bg-slate-900 border border-slate-800/60 rounded-xl px-4 py-3 space-y-1';
-
     const partes = [];
     if (log.Peso_Real   != null) partes.push(`<span class="font-bold text-slate-200">${log.Peso_Real} kg</span>`);
     if (log.Reps_Reales != null) partes.push(`<span class="font-bold text-slate-200">${log.Reps_Reales} reps</span>`);
     const resultado = partes.length ? partes.join(' · ') : '<span class="text-slate-500">Sin datos</span>';
-
     row.innerHTML = `
         <div class="flex items-start justify-between gap-2">
             <p class="text-xs font-semibold text-slate-300 leading-snug flex-1">${log.Ejercicio}</p>
@@ -976,51 +986,153 @@ function buildHistoryRow(log) {
 }
 
 // =====================================================================
-// 14. BOTONES DE PANTALLA 3
+// 15. PANTALLA 5: AJUSTES — EXPORTAR / IMPORTAR
+// =====================================================================
+async function refreshSettingsStats() {
+    const logCount  = await db.Log_Ejecucion_Global.count();
+    const planCount = await db.Planificacion_Actual.count();
+    ui.statLogCount.textContent  = logCount.toLocaleString();
+    ui.statPlanCount.textContent = planCount.toLocaleString();
+}
+
+// --- EXPORTAR ---
+ui.btnExport.addEventListener('click', async () => {
+    try {
+        const planificacion = await db.Planificacion_Actual.toArray();
+        const log           = await db.Log_Ejecucion_Global.toArray();
+        const backup = {
+            version:       '1.0.0',
+            exportDate:    new Date().toISOString(),
+            Planificacion_Actual:  planificacion,
+            Log_Ejecucion_Global:  log,
+        };
+        const blob     = new Blob([JSON.stringify(backup, null, 2)], { type: 'application/json' });
+        const url      = URL.createObjectURL(blob);
+        const fecha    = new Date().toISOString().slice(0,10);
+        const a        = document.createElement('a');
+        a.href         = url;
+        a.download     = `gymtracker-backup-${fecha}.json`;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+        toast('✓ Backup exportado', 'emerald');
+    } catch (err) {
+        toast('Error al exportar: ' + err.message, 'red');
+    }
+});
+
+// --- IMPORTAR: selección de archivo → mostrar modal con checkboxes ---
+let pendingImportData = null;
+
+ui.importInput.addEventListener('change', function(e) {
+    const file = e.target.files[0]; if (!file) return;
+    const reader = new FileReader();
+    reader.onload = function(evt) {
+        try {
+            const data = JSON.parse(evt.target.result);
+            if (!data.Log_Ejecucion_Global && !data.Planificacion_Actual) throw new Error('Formato de backup inválido.');
+            pendingImportData = data;
+            const logCount  = (data.Log_Ejecucion_Global  || []).length;
+            const planCount = (data.Planificacion_Actual  || []).length;
+            const exportDate = data.exportDate ? formatDate(data.exportDate) : 'fecha desconocida';
+            ui.importModalMeta.textContent = `Backup del ${exportDate} · ${logCount} series · ${planCount} filas de planificación`;
+            ui.importCheckLog.checked  = true;
+            ui.importCheckPlan.checked = false;
+            ui.importModalOverlay.classList.remove('hidden');
+        } catch (err) {
+            toast('Archivo inválido: ' + err.message, 'red');
+        } finally {
+            ui.importInput.value = '';
+        }
+    };
+    reader.readAsText(file, 'UTF-8');
+});
+
+// Cancelar modal importar
+ui.importModalCancel.addEventListener('click', () => {
+    ui.importModalOverlay.classList.add('hidden');
+    pendingImportData = null;
+});
+ui.importModalOverlay.addEventListener('click', e => {
+    if (e.target === ui.importModalOverlay) { ui.importModalOverlay.classList.add('hidden'); pendingImportData = null; }
+});
+
+// Confirmar importar
+ui.importModalConfirm.addEventListener('click', async () => {
+    if (!pendingImportData) return;
+    const restoreLog  = ui.importCheckLog.checked;
+    const restorePlan = ui.importCheckPlan.checked;
+    if (!restoreLog && !restorePlan) { toast('Seleccioná al menos una opción', 'red'); return; }
+
+    ui.importModalOverlay.classList.add('hidden');
+
+    try {
+        await db.transaction('rw', db.Log_Ejecucion_Global, db.Planificacion_Actual, async () => {
+            if (restoreLog && pendingImportData.Log_Ejecucion_Global?.length) {
+                // Append-only: agrega sin borrar el historial existente
+                const incoming = pendingImportData.Log_Ejecucion_Global.map(r => {
+                    const { id, ...rest } = r; return rest; // quitar id para evitar conflictos
+                });
+                await db.Log_Ejecucion_Global.bulkAdd(incoming);
+            }
+            if (restorePlan && pendingImportData.Planificacion_Actual?.length) {
+                await db.Planificacion_Actual.clear();
+                const incoming = pendingImportData.Planificacion_Actual.map(r => {
+                    const { id, ...rest } = r; return rest;
+                });
+                await db.Planificacion_Actual.bulkAdd(incoming);
+            }
+        });
+
+        pendingImportData = null;
+        const partes = [];
+        if (restoreLog)  partes.push('historial');
+        if (restorePlan) partes.push('planificación');
+        toast(`✓ ${partes.join(' y ')} restaurado${partes.length > 1 ? 's' : ''}`, 'emerald');
+        refreshSettingsStats();
+
+        // Si se restauró la planificación, recargar la app
+        if (restorePlan) { await runEngine(); }
+
+    } catch (err) {
+        toast('Error al importar: ' + err.message, 'red');
+        pendingImportData = null;
+    }
+});
+
+// =====================================================================
+// 16. BOTONES PANTALLA 3
 // =====================================================================
 ui.btnFinish.addEventListener('click', () => {
     showModal({
-        title:        `Finalizar ${activeSession}`,
-        body:         'Las series sin completar quedarán sin registrar. ¿Confirmás?',
-        confirmLabel: 'Finalizar',
-        confirmClass: 'bg-emerald-600 text-white hover:bg-emerald-500',
-        onConfirm:    async () => {
+        title: `Finalizar ${activeSession}`, body: 'Las series sin completar quedarán sin registrar. ¿Confirmás?',
+        confirmLabel: 'Finalizar', confirmClass: 'bg-emerald-600 text-white hover:bg-emerald-500',
+        onConfirm: async () => {
             localStorage.setItem(`finished_${activeSessionWeek}_${activeSession}`, 'true');
-            timerHide();
-            showScreen('home');
-            buildWeekSelector();
-            await refreshWorkoutsView();
+            timerHide(); showScreen('home'); buildWeekSelector(); await refreshWorkoutsView();
         }
     });
 });
-
-ui.btnBack.addEventListener('click', async () => {
-    timerHide();
-    showScreen('home');
-    buildWeekSelector();
-    await refreshWorkoutsView();
-});
+ui.btnBack.addEventListener('click', async () => { timerHide(); showScreen('home'); buildWeekSelector(); await refreshWorkoutsView(); });
 
 // =====================================================================
-// 15. RESETEO DEL PLAN
+// 17. RESETEO DEL PLAN
 // =====================================================================
 ui.btnReset.addEventListener('click', () => {
     showModal({
-        title:        'Resetear plan activo',
-        body:         'Esto borra la planificación cargada desde el CSV. Tu historial de series realizadas NO se borra.',
-        confirmLabel: 'Resetear',
-        confirmClass: 'bg-red-600 text-white hover:bg-red-500',
-        onConfirm:    async () => {
+        title: 'Resetear plan activo', body: 'Esto borra la planificación cargada desde el CSV. Tu historial de series realizadas NO se borra.',
+        confirmLabel: 'Resetear', confirmClass: 'bg-red-600 text-white hover:bg-red-500',
+        onConfirm: async () => {
             await db.Planificacion_Actual.clear();
             Object.keys(localStorage).forEach(k => { if (k.startsWith('finished_')) localStorage.removeItem(k); });
-            localStorage.removeItem('activeWeek');
-            runEngine();
+            localStorage.removeItem('activeWeek'); runEngine();
         }
     });
 });
 
 // =====================================================================
-// 16. ARRANQUE
+// 18. ARRANQUE
 // =====================================================================
 runEngine();
 </script>
