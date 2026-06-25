@@ -79,7 +79,7 @@
     </section>
 
     <!-- ===================== PANTALLA 2: HOME ===================== -->
-    <section id="screen-home" class="hidden flex-1 flex flex-col p-5 pb-24 fade-in">
+    <section id="screen-home" class="hidden flex-col flex-1 p-5 pb-24 fade-in">
         <header class="flex justify-between items-center mb-6">
             <div>
                 <h1 class="text-2xl font-extrabold tracking-tight bg-gradient-to-r from-white to-slate-400 bg-clip-text text-transparent">Gym Tracker</h1>
@@ -629,16 +629,21 @@ function showScreen(target) {
 
     if (target === 'upload') {
         ui.screenUpload.classList.remove('hidden');
+        ui.screenUpload.classList.add('flex-col');
     } else if (target === 'home') {
         ui.screenHome.classList.remove('hidden');
+        ui.screenHome.classList.add('flex-col');
         ui.bottomNav.classList.remove('hidden'); setNavActive('home');
     } else if (target === 'workout') {
-        ui.screenWorkout.classList.remove('hidden'); ui.screenWorkout.classList.add('flex-col');
+        ui.screenWorkout.classList.remove('hidden');
+        ui.screenWorkout.classList.add('flex-col');
     } else if (target === 'history') {
-        ui.screenHistory.classList.remove('hidden'); ui.screenHistory.classList.add('flex-col');
+        ui.screenHistory.classList.remove('hidden');
+        ui.screenHistory.classList.add('flex-col');
         ui.bottomNav.classList.remove('hidden'); setNavActive('history');
     } else if (target === 'settings') {
-        ui.screenSettings.classList.remove('hidden'); ui.screenSettings.classList.add('flex-col');
+        ui.screenSettings.classList.remove('hidden');
+        ui.screenSettings.classList.add('flex-col');
         ui.bottomNav.classList.remove('hidden'); setNavActive('settings');
         refreshSettingsStats();
     }
