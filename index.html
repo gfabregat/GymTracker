@@ -1050,19 +1050,24 @@ function buildSerieRow(serieRow, existingLogs, prevWeekLogs) {
     row.className = `space-y-1.5 ${isDone ? 'serie-done' : ''}`;
 
     const renderRow = (editMode = false) => {
-        const pesoVal = isDone ? (existingLog.Peso_Real ?? '') : '';
-        const repsVal = isDone ? (existingLog.Reps_Reales ?? '') : '';
+        // Recalcular el estado en vivo (existingLogs puede haber cambiado tras un check)
+        const liveLog = existingLogs.find(l => l.Ejercicio === serieRow.Ejercicio && l.Serie === serieRow.Serie);
+        const done    = !!liveLog;
+        const pesoVal = done ? (liveLog.Peso_Real ?? '') : '';
+        const repsVal = done ? (liveLog.Reps_Reales ?? '') : '';
 
-        // En edit mode: quitar serie-done para poder editar
+        // Manejo de clase serie-done según estado actual
         if (editMode) {
             row.classList.remove('serie-done');
-        } else if (isDone) {
+        } else if (done) {
             row.classList.add('serie-done');
+        } else {
+            row.classList.remove('serie-done');
         }
 
         // Botón derecho: check (pendiente), lápiz (done normal), guardar (done editando)
         let btnHtml;
-        if (!isDone) {
+        if (!done) {
             btnHtml = `<button class="shrink-0 w-11 h-11 flex items-center justify-center rounded-xl transition-all active:scale-90 bg-slate-800 hover:bg-indigo-600 text-slate-400 hover:text-white border border-slate-700/60 hover:border-indigo-500" data-action="check">
                 <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor" class="w-5 h-5"><path stroke-linecap="round" stroke-linejoin="round" d="m4.5 12.75 6 6 9-13.5" /></svg>
             </button>`;
@@ -1089,12 +1094,12 @@ function buildSerieRow(serieRow, existingLogs, prevWeekLogs) {
                 <span class="w-7 text-center text-xs font-black text-slate-500 shrink-0">${serieRow.Serie}</span>
                 <div class="flex-1 flex gap-2">
                     <div class="flex-1 relative">
-                        <input type="number" inputmode="decimal" placeholder="kg" value="${editMode ? pesoVal : (!isDone ? '' : pesoVal)}"
+                        <input type="number" inputmode="decimal" placeholder="kg" value="${editMode ? pesoVal : (!done ? '' : pesoVal)}"
                             class="w-full bg-slate-800 border ${editMode ? 'border-indigo-500/60' : 'border-slate-700/60'} rounded-xl px-3 py-2.5 text-base font-bold text-center text-slate-100 placeholder-slate-600 focus:outline-none focus:border-indigo-500/60 transition-colors" data-field="peso" />
                         <span class="absolute right-2.5 top-1/2 -translate-y-1/2 text-[10px] text-slate-500 pointer-events-none">kg</span>
                     </div>
                     <div class="flex-1">
-                        <input type="number" inputmode="numeric" placeholder="reps" value="${editMode ? repsVal : (!isDone ? '' : repsVal)}"
+                        <input type="number" inputmode="numeric" placeholder="reps" value="${editMode ? repsVal : (!done ? '' : repsVal)}"
                             class="w-full bg-slate-800 border ${editMode ? 'border-indigo-500/60' : 'border-slate-700/60'} rounded-xl px-3 py-2.5 text-base font-bold text-center text-slate-100 placeholder-slate-600 focus:outline-none focus:border-indigo-500/60 transition-colors" data-field="reps" />
                     </div>
                 </div>
@@ -1102,7 +1107,7 @@ function buildSerieRow(serieRow, existingLogs, prevWeekLogs) {
             </div>`;
 
         // Asignar eventos según estado
-        if (!isDone) {
+        if (!done) {
             row.querySelector('[data-action="check"]').addEventListener('click', () => handleCheckSerie(row, serieRow, existingLogs, renderRow));
         } else if (editMode) {
             // Guardar edición
@@ -1115,13 +1120,13 @@ function buildSerieRow(serieRow, existingLogs, prevWeekLogs) {
                     [pesoInput, repsInput].forEach(el => { el.classList.add('border-red-500/60'); setTimeout(() => el.classList.remove('border-red-500/60'), 1500); });
                     return;
                 }
-                await db.Log_Ejecucion_Global.update(existingLog.id, {
+                await db.Log_Ejecucion_Global.update(liveLog.id, {
                     Peso_Real:   isNaN(peso) ? null : peso,
                     Reps_Reales: isNaN(reps) ? null : reps,
                 });
                 // Actualizar en memoria para que renderRow use los nuevos valores
-                existingLog.Peso_Real   = isNaN(peso) ? null : peso;
-                existingLog.Reps_Reales = isNaN(reps) ? null : reps;
+                liveLog.Peso_Real   = isNaN(peso) ? null : peso;
+                liveLog.Reps_Reales = isNaN(reps) ? null : reps;
                 toast('✓ Marca actualizada', 'emerald');
                 renderRow(false);
             });
