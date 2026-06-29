@@ -732,7 +732,7 @@ function timerHide() {
         window._workoutViewportHandler = null;
     }
     const header = document.getElementById('workout-header');
-    if (header) header.style.transform = '';
+    if (header) header.style.transform = 'translateX(-50%)';
 }
 
 // Arrancar stopwatch al entrar al entrenamiento
@@ -761,7 +761,10 @@ function timerInitWorkout() {
     function onViewportChange() {
         const vv     = window.visualViewport;
         const offset = vv ? vv.offsetTop : 0;
-        header.style.transform = offset ? `translateY(${offset}px)` : '';
+        // Combinar con el translateX(-50%) de Tailwind que centra el elemento.
+        // Asignar transform directamente sobreescribe Tailwind, así que hay que
+        // incluir ambas transformaciones juntas.
+        header.style.transform = `translateX(-50%) translateY(${offset}px)`;
     }
     if (window.visualViewport) {
         window.visualViewport.addEventListener('resize', onViewportChange);
