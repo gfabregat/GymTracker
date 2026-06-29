@@ -105,7 +105,7 @@
 
     <!-- ===================== PANTALLA 3: ENTRENAMIENTO EN VIVO ===================== -->
     <section id="screen-workout" class="hidden flex-col fade-in min-h-screen">
-        <header id="workout-header" class="sticky top-0 z-30 bg-slate-950/95 backdrop-blur-sm border-b border-slate-800/80 px-4 py-3">
+        <header id="workout-header" class="fixed top-0 left-1/2 -translate-x-1/2 w-full max-w-md z-30 bg-slate-950/95 backdrop-blur-sm border-b border-slate-800/80 px-4 py-3">
             <div class="flex items-center gap-3">
                 <button id="btn-back" class="w-9 h-9 flex items-center justify-center rounded-xl bg-slate-800/80 hover:bg-slate-700 active:scale-95 transition-all shrink-0">
                     <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor" class="w-4 h-4">
@@ -616,8 +616,8 @@ function audioCountdownCue(secsLeft) {
         audioBeep({ freq: 700, duration: 0.18, volume: 0.28, type: 'sine' });
     } else if (secsLeft === 0) {
         // Final: doble pitido agudo
-        audioBeep({ freq: 1100, duration: 0.15, volume: 0.30, type: 'sine' });
-        setTimeout(() => audioBeep({ freq: 1100, duration: 0.2, volume: 0.30, type: 'sine' }), 200);
+        audioBeep({ freq: 800, duration: 0.15, volume: 0.30, type: 'sine' });
+        setTimeout(() => audioBeep({ freq: 800, duration: 0.2, volume: 0.30, type: 'sine' }), 200);
     }
 }
 
@@ -717,6 +717,13 @@ function timerHide() {
     timerStop();
     // Suspender el AudioContext para cortar cualquier sonido en curso
     if (audioCtx && audioCtx.state === 'running') audioCtx.suspend();
+    // Desconectar el ResizeObserver y resetear el padding del contenedor
+    if (window._workoutHeaderObserver) {
+        window._workoutHeaderObserver.disconnect();
+        window._workoutHeaderObserver = null;
+    }
+    const container = document.getElementById('exercises-container');
+    if (container) container.style.paddingTop = '';
 }
 
 // Arrancar stopwatch al entrar al entrenamiento
@@ -724,6 +731,21 @@ function timerInitWorkout() {
     // Reanudar AudioContext si estaba suspendido
     if (audioCtx && audioCtx.state === 'suspended') audioCtx.resume();
     timerStartStopwatch();
+    // Ajustar padding-top del contenedor de ejercicios según la altura del header fijo.
+    // ResizeObserver reacciona en tiempo real: si el timer widget cambia de tamaño
+    // (aparece/desaparece contenido), el padding se recalcula automáticamente.
+    // Esto mantiene el header visible aunque el teclado virtual redimensione el viewport.
+    const header    = document.getElementById('workout-header');
+    const container = document.getElementById('exercises-container');
+    if (window._workoutHeaderObserver) window._workoutHeaderObserver.disconnect();
+    window._workoutHeaderObserver = new ResizeObserver(entries => {
+        for (const entry of entries) {
+            container.style.paddingTop = (entry.contentRect.height + 16) + 'px';
+        }
+    });
+    window._workoutHeaderObserver.observe(header);
+    // Aplicar valor inicial inmediatamente
+    container.style.paddingTop = (header.offsetHeight + 16) + 'px';
 }
 
 ui.timerPlus.addEventListener('click', () => {
