@@ -725,6 +725,14 @@ function timerHide() {
     }
     const container = document.getElementById('exercises-container');
     if (container) container.style.paddingTop = '';
+    // Desconectar listeners de visualViewport
+    if (window.visualViewport && window._workoutViewportHandler) {
+        window.visualViewport.removeEventListener('resize', window._workoutViewportHandler);
+        window.visualViewport.removeEventListener('scroll', window._workoutViewportHandler);
+        window._workoutViewportHandler = null;
+    }
+    const header = document.getElementById('workout-header');
+    if (header) header.style.transform = '';
 }
 
 // Arrancar stopwatch al entrar al entrenamiento
@@ -732,12 +740,11 @@ function timerInitWorkout() {
     // Reanudar AudioContext si estaba suspendido
     if (audioCtx && audioCtx.state === 'suspended') audioCtx.resume();
     timerStartStopwatch();
-    // Ajustar padding-top del contenedor de ejercicios según la altura del header fijo.
-    // ResizeObserver reacciona en tiempo real: si el timer widget cambia de tamaño
-    // (aparece/desaparece contenido), el padding se recalcula automáticamente.
-    // Esto mantiene el header visible aunque el teclado virtual redimensione el viewport.
+
     const header    = document.getElementById('workout-header');
     const container = document.getElementById('exercises-container');
+
+    // --- ResizeObserver: ajusta padding-top cuando el header cambia de alto ---
     if (window._workoutHeaderObserver) window._workoutHeaderObserver.disconnect();
     window._workoutHeaderObserver = new ResizeObserver(entries => {
         for (const entry of entries) {
@@ -745,8 +752,22 @@ function timerInitWorkout() {
         }
     });
     window._workoutHeaderObserver.observe(header);
-    // Aplicar valor inicial inmediatamente
     container.style.paddingTop = (header.offsetHeight + 16) + 'px';
+
+    // --- visualViewport: compensa el desplazamiento del teclado virtual en PWA ---
+    // En Android PWA standalone, cuando abre el teclado el visual viewport
+    // se achica y desplaza. Con 'fixed' el header se mueve con ese viewport.
+    // Compensamos aplicando un translateY igual al offset del visual viewport.
+    function onViewportChange() {
+        const vv     = window.visualViewport;
+        const offset = vv ? vv.offsetTop : 0;
+        header.style.transform = offset ? `translateY(${offset}px)` : '';
+    }
+    if (window.visualViewport) {
+        window.visualViewport.addEventListener('resize', onViewportChange);
+        window.visualViewport.addEventListener('scroll', onViewportChange);
+        window._workoutViewportHandler = onViewportChange;
+    }
 }
 
 ui.timerPlus.addEventListener('click', () => {
