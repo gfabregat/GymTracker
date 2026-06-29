@@ -116,7 +116,7 @@
                     <p id="workout-subtitle" class="text-xs text-slate-500 font-medium"></p>
                 </div>
             </div>
-            <div id="timer-widget" class="hidden mt-3 bg-slate-800/80 border border-slate-700/50 rounded-2xl px-4 py-3">
+            <div id="timer-widget" class="mt-3 bg-slate-800/80 border border-slate-700/50 rounded-2xl px-4 py-3">
                 <div class="flex items-center justify-between gap-3">
                     <div class="flex items-center gap-2 min-w-0">
                         <div class="w-7 h-7 rounded-full bg-indigo-500/20 border border-indigo-500/30 flex items-center justify-center shrink-0">
@@ -125,7 +125,7 @@
                             </svg>
                         </div>
                         <div>
-                            <p class="text-[10px] text-slate-500 font-medium uppercase tracking-wider leading-none mb-0.5">Descanso</p>
+                            <p id="timer-mode-label" class="text-[10px] text-slate-500 font-medium uppercase tracking-wider leading-none mb-0.5">Cronómetro</p>
                             <p id="timer-display" class="text-2xl font-black tabular-nums text-slate-100 leading-none"></p>
                         </div>
                     </div>
@@ -432,6 +432,12 @@ db.version(1).stores({
     Planificacion_Actual: '++id, Semana, Entrenamiento, Codigo_Orden',
     Log_Ejecucion_Global: '++id, Fecha, Ejercicio, Semana, Entrenamiento'
 });
+// v2: agrega store de notas por ejercicio (persistentes entre semanas)
+db.version(2).stores({
+    Planificacion_Actual: '++id, Semana, Entrenamiento, Codigo_Orden',
+    Log_Ejecucion_Global: '++id, Fecha, Ejercicio, Semana, Entrenamiento',
+    Notas_Ejercicio:      '&Ejercicio'
+});
 
 // =====================================================================
 // 3. ESTADO GLOBAL
@@ -550,37 +556,73 @@ function showModal({ title, body, confirmLabel, confirmClass, onConfirm }) {
 
 // =====================================================================
 // 7. CRONÓMETRO
+// Modos: 'stopwatch' (cuenta hacia arriba, siempre activo), 'countdown' (descanso)
 // =====================================================================
 let timerInterval  = null;
-let timerRemaining = 0;
-let timerTotal     = 0;
+let timerRemaining = 0;   // en countdown: segundos restantes
+let timerTotal     = 0;   // en countdown: duración total pautada
 let timerPaused    = false;
+let timerMode      = 'stopwatch'; // 'stopwatch' | 'countdown'
+let timerElapsed   = 0;   // en stopwatch: segundos transcurridos
 
 function timerFormat(secs) {
     const m = Math.floor(secs / 60), s = secs % 60;
     return m > 0 ? `${m}:${String(s).padStart(2, '0')}` : `${s}s`;
 }
+
+// Inicia el cronómetro como countdown (al hacer check de una serie)
 function timerStart(seconds) {
     timerStop();
+    timerMode = 'countdown';
     timerRemaining = seconds; timerTotal = seconds; timerPaused = false;
-    ui.timerWidget.classList.remove('hidden', 'timer-alert');
+    timerElapsed = 0;
+    document.getElementById('timer-mode-label').textContent = 'DESCANSO';
+    ui.timerWidget.classList.remove('timer-alert');
     ui.timerPause.textContent = 'Pausa';
     ui.timerBar.style.width = '100%';
-    ui.timerBar.classList.remove('bg-red-500'); ui.timerBar.classList.add('bg-indigo-500');
+    ui.timerBar.classList.remove('bg-red-500', 'bg-emerald-500'); ui.timerBar.classList.add('bg-indigo-500');
     updateTimerDisplay();
     timerInterval = setInterval(() => {
         if (timerPaused) return;
         timerRemaining--;
         updateTimerDisplay();
-        if (timerRemaining <= 0) { timerStop(); timerAlert(); }
+        if (timerRemaining <= 0) { timerStop(); timerCountdownFinished(); }
     }, 1000);
 }
-function timerStop() { if (timerInterval) { clearInterval(timerInterval); timerInterval = null; } }
-function timerAlert() {
-    ui.timerDisplay.textContent = '¡Listo!';
-    ui.timerBar.style.width = '0%';
+
+// Cuando el countdown llega a 0, arranca automáticamente el stopwatch
+function timerCountdownFinished() {
     ui.timerWidget.classList.add('timer-alert');
+    setTimeout(() => {
+        ui.timerWidget.classList.remove('timer-alert');
+        timerStartStopwatch();
+    }, 1200);
 }
+
+// Inicia (o reinicia) el modo stopwatch (cuenta hacia arriba)
+function timerStartStopwatch() {
+    timerStop();
+    timerMode = 'stopwatch';
+    timerElapsed = 0; timerPaused = false;
+    timerTotal = 0; timerRemaining = 0;
+    document.getElementById('timer-mode-label').textContent = 'CRONÓMETRO';
+    ui.timerWidget.classList.remove('timer-alert');
+    ui.timerPause.textContent = 'Pausa';
+    ui.timerBar.style.width = '100%';
+    ui.timerBar.classList.remove('bg-red-500', 'bg-indigo-500'); ui.timerBar.classList.add('bg-emerald-500');
+    ui.timerDisplay.textContent = timerFormat(0);
+    timerInterval = setInterval(() => {
+        if (timerPaused) return;
+        timerElapsed++;
+        ui.timerDisplay.textContent = timerFormat(timerElapsed);
+        // barra oscila 0→100 cada 60s para dar feedback visual
+        const pct = ((timerElapsed % 60) / 60) * 100;
+        ui.timerBar.style.width = pct + '%';
+    }, 1000);
+}
+
+function timerStop() { if (timerInterval) { clearInterval(timerInterval); timerInterval = null; } }
+
 function updateTimerDisplay() {
     ui.timerDisplay.textContent = timerFormat(timerRemaining);
     const pct = timerTotal > 0 ? (timerRemaining / timerTotal) * 100 : 0;
@@ -588,15 +630,38 @@ function updateTimerDisplay() {
     if (pct < 25) { ui.timerBar.classList.replace('bg-indigo-500', 'bg-red-500'); }
     else          { ui.timerBar.classList.replace('bg-red-500', 'bg-indigo-500'); }
 }
-function timerHide() { timerStop(); ui.timerWidget.classList.add('hidden', 'timer-alert' ); ui.timerWidget.classList.remove('timer-alert'); }
+
+// timerHide ahora solo reinicia al stopwatch (el widget siempre está visible en workout)
+function timerHide() { timerStop(); timerStartStopwatch(); }
+
+// Arrancar stopwatch al entrar al entrenamiento
+function timerInitWorkout() { timerStartStopwatch(); }
 
 ui.timerPlus.addEventListener('click', () => {
-    timerRemaining += 30; timerTotal = Math.max(timerTotal, timerRemaining);
-    if (ui.timerWidget.classList.contains('timer-alert')) { ui.timerWidget.classList.remove('timer-alert'); timerStart(timerRemaining); }
-    else updateTimerDisplay();
+    if (timerMode === 'countdown') {
+        timerRemaining += 30; timerTotal = Math.max(timerTotal, timerRemaining);
+        ui.timerWidget.classList.remove('timer-alert');
+        updateTimerDisplay();
+        // si estaba detenido, rearrancar el interval
+        if (!timerInterval) {
+            timerInterval = setInterval(() => {
+                if (timerPaused) return;
+                timerRemaining--;
+                updateTimerDisplay();
+                if (timerRemaining <= 0) { timerStop(); timerCountdownFinished(); }
+            }, 1000);
+        }
+    } else {
+        // en stopwatch, +30s no tiene sentido; ignorar o podrías agregar un countdown manual
+    }
 });
 ui.timerPause.addEventListener('click', () => { timerPaused = !timerPaused; ui.timerPause.textContent = timerPaused ? 'Reanudar' : 'Pausa'; });
-ui.timerSkip.addEventListener('click', () => timerHide());
+ui.timerSkip.addEventListener('click', () => {
+    // Skip en countdown → ir directo al stopwatch
+    // Skip en stopwatch → reiniciar stopwatch
+    timerStop();
+    timerStartStopwatch();
+});
 
 // =====================================================================
 // 8. NAVEGACIÓN
@@ -824,6 +889,9 @@ async function navigateToWorkout(sessionName, semana) {
         }
     });
     showScreen('workout'); window.scrollTo(0,0);
+    timerInitWorkout();
+    // Push state para que el swipe-back de Android vuelva a home
+    history.pushState({ screen: 'workout' }, '');
 }
 
 function buildExerciseBlock(exGroup, isSuperset, existingLogs, prevWeekLogs, showHeader = true) {
@@ -843,9 +911,15 @@ function buildExerciseBlock(exGroup, isSuperset, existingLogs, prevWeekLogs, sho
                 <span class="shrink-0 mt-0.5 px-2 py-0.5 rounded-lg text-[11px] font-black tracking-wider ${isSuperset ? 'bg-violet-500/20 text-violet-300 border border-violet-500/20' : 'bg-indigo-500/15 text-indigo-300 border border-indigo-500/20'}">${Codigo_Orden}</span>
                 <h3 class="font-bold text-sm text-slate-100 leading-snug">${Ejercicio}</h3>
             </div>
-            <button class="shrink-0 w-8 h-8 flex items-center justify-center rounded-xl bg-slate-800/80 hover:bg-slate-700 text-slate-400 hover:text-indigo-400 transition-all active:scale-95" data-action="history-lookup">
-                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" class="w-3.5 h-3.5"><path fill-rule="evenodd" d="M9 3.5a5.5 5.5 0 1 0 0 11 5.5 5.5 0 0 0 0-11ZM2 9a7 7 0 1 1 12.452 4.391l3.328 3.329a.75.75 0 1 1-1.06 1.06l-3.329-3.328A7 7 0 0 1 2 9Z" clip-rule="evenodd" /></svg>
-            </button>`;
+            <div class="flex items-center gap-1.5 shrink-0">
+                <button class="w-8 h-8 flex items-center justify-center rounded-xl bg-slate-800/80 hover:bg-red-600/80 text-slate-400 hover:text-white transition-all active:scale-95" data-action="youtube-search" title="Buscar en YouTube">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="w-3.5 h-3.5"><path d="M19.615 3.184c-3.604-.246-11.631-.245-15.23 0C.488 3.45.029 5.804 0 12c.029 6.185.484 8.549 4.385 8.816 3.6.245 11.626.246 15.23 0C23.512 20.55 23.971 18.196 24 12c-.029-6.185-.484-8.549-4.385-8.816zM9 16V8l8 3.993L9 16z"/></svg>
+                </button>
+                <button class="w-8 h-8 flex items-center justify-center rounded-xl bg-slate-800/80 hover:bg-slate-700 text-slate-400 hover:text-indigo-400 transition-all active:scale-95" data-action="history-lookup">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" class="w-3.5 h-3.5"><path fill-rule="evenodd" d="M9 3.5a5.5 5.5 0 1 0 0 11 5.5 5.5 0 0 0 0-11ZM2 9a7 7 0 1 1 12.452 4.391l3.328 3.329a.75.75 0 1 1-1.06 1.06l-3.329-3.328A7 7 0 0 1 2 9Z" clip-rule="evenodd" /></svg>
+                </button>
+            </div>`;
+        headerEl.querySelector('[data-action="youtube-search"]').addEventListener('click', e => { e.stopPropagation(); window.open('https://www.youtube.com/results?search_query=' + encodeURIComponent(Ejercicio), '_blank'); });
         headerEl.querySelector('[data-action="history-lookup"]').addEventListener('click', e => { e.stopPropagation(); openHistoryModal(Ejercicio); });
         block.appendChild(headerEl);
         const metaEl = document.createElement('div');
@@ -861,9 +935,15 @@ function buildExerciseBlock(exGroup, isSuperset, existingLogs, prevWeekLogs, sho
                 <span class="shrink-0 px-2 py-0.5 rounded-lg text-[11px] font-black tracking-wider bg-violet-500/20 text-violet-300 border border-violet-500/20">${Codigo_Orden}</span>
                 <span class="text-sm font-bold text-slate-100 truncate">${Ejercicio}</span>
             </div>
-            <button class="shrink-0 w-8 h-8 flex items-center justify-center rounded-xl bg-slate-800/80 hover:bg-slate-700 text-slate-400 hover:text-indigo-400 transition-all active:scale-95" data-action="history-lookup">
-                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" class="w-3.5 h-3.5"><path fill-rule="evenodd" d="M9 3.5a5.5 5.5 0 1 0 0 11 5.5 5.5 0 0 0 0-11ZM2 9a7 7 0 1 1 12.452 4.391l3.328 3.329a.75.75 0 1 1-1.06 1.06l-3.329-3.328A7 7 0 0 1 2 9Z" clip-rule="evenodd" /></svg>
-            </button>`;
+            <div class="flex items-center gap-1.5 shrink-0">
+                <button class="w-8 h-8 flex items-center justify-center rounded-xl bg-slate-800/80 hover:bg-red-600/80 text-slate-400 hover:text-white transition-all active:scale-95" data-action="youtube-search" title="Buscar en YouTube">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="w-3.5 h-3.5"><path d="M19.615 3.184c-3.604-.246-11.631-.245-15.23 0C.488 3.45.029 5.804 0 12c.029 6.185.484 8.549 4.385 8.816 3.6.245 11.626.246 15.23 0C23.512 20.55 23.971 18.196 24 12c-.029-6.185-.484-8.549-4.385-8.816zM9 16V8l8 3.993L9 16z"/></svg>
+                </button>
+                <button class="w-8 h-8 flex items-center justify-center rounded-xl bg-slate-800/80 hover:bg-slate-700 text-slate-400 hover:text-indigo-400 transition-all active:scale-95" data-action="history-lookup">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" class="w-3.5 h-3.5"><path fill-rule="evenodd" d="M9 3.5a5.5 5.5 0 1 0 0 11 5.5 5.5 0 0 0 0-11ZM2 9a7 7 0 1 1 12.452 4.391l3.328 3.329a.75.75 0 1 1-1.06 1.06l-3.329-3.328A7 7 0 0 1 2 9Z" clip-rule="evenodd" /></svg>
+                </button>
+            </div>`;
+        compactHeader.querySelector('[data-action="youtube-search"]').addEventListener('click', e => { e.stopPropagation(); window.open('https://www.youtube.com/results?search_query=' + encodeURIComponent(Ejercicio), '_blank'); });
         compactHeader.querySelector('[data-action="history-lookup"]').addEventListener('click', e => { e.stopPropagation(); openHistoryModal(Ejercicio); });
         block.appendChild(compactHeader);
     }
@@ -879,6 +959,8 @@ function buildSerieRow(serieRow, existingLogs, prevWeekLogs) {
     row.className = `space-y-1.5 ${isDone ? 'serie-done' : ''}`;
     const pesoInicial = isDone ? (existingLog.Peso_Real ?? '') : '';
     const repsInicial = isDone ? (existingLog.Reps_Reales ?? '') : '';
+
+    // Hint de semana anterior
     let prevHint = '';
     if (prevLog) {
         const partes = [];
@@ -886,8 +968,24 @@ function buildSerieRow(serieRow, existingLogs, prevWeekLogs) {
         if (prevLog.Reps_Reales != null) partes.push(`${prevLog.Reps_Reales} reps`);
         if (partes.length) prevHint = `<p class="text-[10px] text-slate-500 px-1">S${activeSessionWeek-1}: <span class="text-slate-400 font-semibold">${partes.join(' · ')}</span></p>`;
     }
+
+    // Meta compacta por serie: RIR y reps objetivo (sin RPE)
+    const repsObj  = serieRow.Reps_Objetivo || '';
+    // Filtrar RPE: solo mostrar si es RIR, o si no menciona RPE
+    const intObj   = serieRow.Intensidad_Objetivo || '';
+    const showInt  = intObj && !intObj.toUpperCase().startsWith('RPE');
+    const tempoVal = serieRow.Tempo && serieRow.Tempo !== '0' && serieRow.Tempo !== '0000' ? serieRow.Tempo : '';
+    const metaParts = [];
+    if (repsObj) metaParts.push(`<span class="text-slate-500">Obj.</span> ${repsObj}`);
+    if (showInt)  metaParts.push(`<span class="text-slate-500">${intObj.toUpperCase().startsWith('RIR') ? '' : ''}${intObj}</span>`);
+    if (tempoVal) metaParts.push(`<span class="text-slate-500">Tempo</span> ${tempoVal}`);
+    const metaHtml = metaParts.length
+        ? `<p class="text-[10px] text-slate-500 px-1 leading-tight">${metaParts.join(' · ')}</p>`
+        : '';
+
     row.innerHTML = `
         ${prevHint}
+        ${metaHtml}
         <div class="flex items-center gap-3">
             <span class="w-7 text-center text-xs font-black text-slate-500 shrink-0">${serieRow.Serie}</span>
             <div class="flex-1 flex gap-2">
@@ -1139,17 +1237,45 @@ ui.importModalConfirm.addEventListener('click', async () => {
 // =====================================================================
 // 16. BOTONES PANTALLA 3
 // =====================================================================
-ui.btnFinish.addEventListener('click', () => {
-    showModal({
-        title: `Finalizar ${activeSession}`, body: 'Las series sin completar quedarán sin registrar. ¿Confirmás?',
-        confirmLabel: 'Finalizar', confirmClass: 'bg-emerald-600 text-white hover:bg-emerald-500',
-        onConfirm: async () => {
-            localStorage.setItem(`finished_${activeSessionWeek}_${activeSession}`, 'true');
-            timerHide(); showScreen('home'); buildWeekSelector(); await refreshWorkoutsView();
-        }
-    });
+ui.btnFinish.addEventListener('click', async () => {
+    // Contar series planificadas vs completadas para este entrenamiento/semana
+    const planRows   = await db.Planificacion_Actual.where('Semana').equals(activeSessionWeek).and(r => r.Entrenamiento === activeSession).toArray();
+    const logRows    = await db.Log_Ejecucion_Global.where('Entrenamiento').equals(activeSession).and(r => r.Semana === activeSessionWeek).toArray();
+    const incomplete = planRows.filter(p => !logRows.some(l => l.Ejercicio === p.Ejercicio && l.Serie === p.Serie));
+
+    const doFinish = async () => {
+        localStorage.setItem(`finished_${activeSessionWeek}_${activeSession}`, 'true');
+        timerHide(); showScreen('home'); buildWeekSelector(); await refreshWorkoutsView();
+    };
+
+    if (incomplete.length === 0) {
+        // Todo completo: finalizar sin preguntar
+        await doFinish();
+    } else {
+        showModal({
+            title: `Finalizar ${activeSession}`,
+            body: `Quedan ${incomplete.length} serie${incomplete.length > 1 ? 's' : ''} sin completar. ¿Confirmás?`,
+            confirmLabel: 'Finalizar', confirmClass: 'bg-emerald-600 text-white hover:bg-emerald-500',
+            onConfirm: doFinish
+        });
+    }
 });
 ui.btnBack.addEventListener('click', async () => { timerHide(); showScreen('home'); buildWeekSelector(); await refreshWorkoutsView(); });
+
+// =====================================================================
+// SWIPE BACK DE ANDROID — interceptar popstate para volver a home
+// =====================================================================
+window.addEventListener('popstate', async (e) => {
+    // Si el state indica que estábamos en workout, volver a home
+    if (activeSession) {
+        timerHide();
+        showScreen('home');
+        buildWeekSelector();
+        await refreshWorkoutsView();
+        activeSession = null;
+    }
+    // Si no hay activeSession, el back sale de la app normalmente (comportamiento default)
+});
 
 // =====================================================================
 // 17. RESETEO DEL PLAN
