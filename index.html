@@ -132,8 +132,8 @@
                     </div>
                     <div class="flex items-center gap-2 shrink-0">
                         <button id="timer-plus"  class="h-9 px-3 rounded-xl bg-slate-700/80 hover:bg-slate-600 text-slate-300 text-xs font-bold transition-all active:scale-95">+30s</button>
-                        <button id="timer-pause" class="h-9 px-3 rounded-xl bg-slate-700/80 hover:bg-slate-600 text-slate-300 text-xs font-bold transition-all active:scale-95">Pausa</button>
-                        <button id="timer-skip"  class="h-9 px-3 rounded-xl bg-slate-700/80 hover:bg-slate-600 text-slate-300 text-xs font-bold transition-all active:scale-95">Skip</button>
+                        <button id="timer-pause" class="h-9 w-9 flex items-center justify-center rounded-xl bg-slate-700/80 hover:bg-slate-600 text-slate-300 transition-all active:scale-95" title="Pausa / Reanudar"><svg id="timer-pause-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" class="w-4 h-4"><path d="M5.75 3a.75.75 0 0 0-.75.75v12.5c0 .414.336.75.75.75h1.5a.75.75 0 0 0 .75-.75V3.75A.75.75 0 0 0 7.25 3h-1.5ZM12.75 3a.75.75 0 0 0-.75.75v12.5c0 .414.336.75.75.75h1.5a.75.75 0 0 0 .75-.75V3.75a.75.75 0 0 0-.75-.75h-1.5Z"/></svg><svg id="timer-play-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" class="w-4 h-4 hidden"><path d="M6.3 2.84A1.5 1.5 0 0 0 4 4.11v11.78a1.5 1.5 0 0 0 2.3 1.27l9.344-5.891a1.5 1.5 0 0 0 0-2.538L6.3 2.84Z"/></svg></button>
+                        <button id="timer-skip"  class="h-9 w-9 flex items-center justify-center rounded-xl bg-slate-700/80 hover:bg-slate-600 text-slate-300 transition-all active:scale-95" title="Skip"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" class="w-4 h-4"><path d="M3.288 4.818A1.5 1.5 0 0 0 1 6.095v7.81a1.5 1.5 0 0 0 2.288 1.277l6.803-3.905a1.5 1.5 0 0 0 0-2.554L3.288 4.818ZM13 4.75a.75.75 0 0 1 .75-.75h.5a.75.75 0 0 1 .75.75v10.5a.75.75 0 0 1-.75.75h-.5a.75.75 0 0 1-.75-.75V4.75Z"/></svg></button>
                         <button id="timer-mute"  class="h-9 w-9 flex items-center justify-center rounded-xl bg-slate-700/80 hover:bg-slate-600 text-slate-300 transition-all active:scale-95" title="Silenciar">
                             <svg id="mute-icon-on" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" class="w-4 h-4">
                                 <path d="M10 3.75a.75.75 0 0 0-1.264-.546L4.703 7H3.167a.75.75 0 0 0-.7.48A6.985 6.985 0 0 0 2 10c0 .887.165 1.737.468 2.52.111.29.39.48.7.48h1.535l4.033 3.796A.75.75 0 0 0 10 16.25V3.75ZM15.95 5.05a.75.75 0 0 0-1.06 1.061 5.5 5.5 0 0 1 0 7.778.75.75 0 0 0 1.06 1.06 7 7 0 0 0 0-9.899ZM13.829 7.172a.75.75 0 0 0-1.061 1.06 2.5 2.5 0 0 1 0 3.536.75.75 0 0 0 1.06 1.06 4 4 0 0 0 0-5.656Z"/>
@@ -612,9 +612,8 @@ function audioCountdownCue(secsLeft) {
         // Pitido medio
         audioBeep({ freq: 660, duration: 0.15, volume: 0.22, type: 'sine' });
     } else if (secsLeft >= 1 && secsLeft <= 5) {
-        // Cuenta 5-4-3-2-1: pitch sube con la urgencia
-        const pitches = { 5: 700, 4: 760, 3: 820, 2: 900, 1: 980 };
-        audioBeep({ freq: pitches[secsLeft], duration: 0.18, volume: 0.28, type: 'sine' });
+        // Cuenta 5-4-3-2-1: todos al mismo pitch
+        audioBeep({ freq: 700, duration: 0.18, volume: 0.28, type: 'sine' });
     } else if (secsLeft === 0) {
         // Final: doble pitido agudo
         audioBeep({ freq: 1100, duration: 0.15, volume: 0.30, type: 'sine' });
@@ -655,7 +654,8 @@ function timerStart(seconds) {
     timerElapsed = 0;
     document.getElementById('timer-mode-label').textContent = 'DESCANSO';
     ui.timerWidget.classList.remove('timer-alert');
-    ui.timerPause.textContent = 'Pausa';
+    document.getElementById('timer-pause-icon').classList.remove('hidden');
+    document.getElementById('timer-play-icon').classList.add('hidden');
     ui.timerBar.style.width = '100%';
     ui.timerBar.classList.remove('bg-red-500', 'bg-emerald-500'); ui.timerBar.classList.add('bg-indigo-500');
     updateTimerDisplay();
@@ -685,7 +685,8 @@ function timerStartStopwatch() {
     timerTotal = 0; timerRemaining = 0;
     document.getElementById('timer-mode-label').textContent = 'CRONÓMETRO';
     ui.timerWidget.classList.remove('timer-alert');
-    ui.timerPause.textContent = 'Pausa';
+    document.getElementById('timer-pause-icon').classList.remove('hidden');
+    document.getElementById('timer-play-icon').classList.add('hidden');
     ui.timerBar.style.width = '100%';
     ui.timerBar.classList.remove('bg-red-500', 'bg-indigo-500'); ui.timerBar.classList.add('bg-emerald-500');
     ui.timerDisplay.textContent = timerFormat(0);
@@ -711,11 +712,19 @@ function updateTimerDisplay() {
     else          { ui.timerBar.classList.replace('bg-red-500', 'bg-indigo-500'); }
 }
 
-// timerHide ahora solo reinicia al stopwatch (el widget siempre está visible en workout)
-function timerHide() { timerStop(); timerStartStopwatch(); }
+// timerHide: detiene todo el audio y el timer al salir del entrenamiento
+function timerHide() {
+    timerStop();
+    // Suspender el AudioContext para cortar cualquier sonido en curso
+    if (audioCtx && audioCtx.state === 'running') audioCtx.suspend();
+}
 
 // Arrancar stopwatch al entrar al entrenamiento
-function timerInitWorkout() { timerStartStopwatch(); }
+function timerInitWorkout() {
+    // Reanudar AudioContext si estaba suspendido
+    if (audioCtx && audioCtx.state === 'suspended') audioCtx.resume();
+    timerStartStopwatch();
+}
 
 ui.timerPlus.addEventListener('click', () => {
     if (timerMode === 'countdown') {
@@ -735,7 +744,11 @@ ui.timerPlus.addEventListener('click', () => {
         // en stopwatch, +30s no tiene sentido; ignorar o podrías agregar un countdown manual
     }
 });
-ui.timerPause.addEventListener('click', () => { timerPaused = !timerPaused; ui.timerPause.textContent = timerPaused ? 'Reanudar' : 'Pausa'; });
+ui.timerPause.addEventListener('click', () => {
+    timerPaused = !timerPaused;
+    document.getElementById('timer-pause-icon').classList.toggle('hidden', timerPaused);
+    document.getElementById('timer-play-icon').classList.toggle('hidden', !timerPaused);
+});
 ui.timerSkip.addEventListener('click', () => {
     // Skip en countdown → ir directo al stopwatch
     // Skip en stopwatch → reiniciar stopwatch
