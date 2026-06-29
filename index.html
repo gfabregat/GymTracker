@@ -134,6 +134,14 @@
                         <button id="timer-plus"  class="h-9 px-3 rounded-xl bg-slate-700/80 hover:bg-slate-600 text-slate-300 text-xs font-bold transition-all active:scale-95">+30s</button>
                         <button id="timer-pause" class="h-9 px-3 rounded-xl bg-slate-700/80 hover:bg-slate-600 text-slate-300 text-xs font-bold transition-all active:scale-95">Pausa</button>
                         <button id="timer-skip"  class="h-9 px-3 rounded-xl bg-slate-700/80 hover:bg-slate-600 text-slate-300 text-xs font-bold transition-all active:scale-95">Skip</button>
+                        <button id="timer-mute"  class="h-9 w-9 flex items-center justify-center rounded-xl bg-slate-700/80 hover:bg-slate-600 text-slate-300 transition-all active:scale-95" title="Silenciar">
+                            <svg id="mute-icon-on" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" class="w-4 h-4">
+                                <path d="M10 3.75a.75.75 0 0 0-1.264-.546L4.703 7H3.167a.75.75 0 0 0-.7.48A6.985 6.985 0 0 0 2 10c0 .887.165 1.737.468 2.52.111.29.39.48.7.48h1.535l4.033 3.796A.75.75 0 0 0 10 16.25V3.75ZM15.95 5.05a.75.75 0 0 0-1.06 1.061 5.5 5.5 0 0 1 0 7.778.75.75 0 0 0 1.06 1.06 7 7 0 0 0 0-9.899ZM13.829 7.172a.75.75 0 0 0-1.061 1.06 2.5 2.5 0 0 1 0 3.536.75.75 0 0 0 1.06 1.06 4 4 0 0 0 0-5.656Z"/>
+                            </svg>
+                            <svg id="mute-icon-off" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" class="w-4 h-4 hidden text-slate-500">
+                                <path d="M9.547 3.062A.75.75 0 0 1 10 3.75v12.5a.75.75 0 0 1-1.264.546L4.703 13H3.167a.75.75 0 0 1-.7-.48A6.985 6.985 0 0 1 2 10c0-.887.165-1.737.468-2.52a.75.75 0 0 1 .7-.48h1.535l4.033-3.796a.75.75 0 0 1 .811-.142ZM13.28 7.22a.75.75 0 1 0-1.06 1.06L13.94 10l-1.72 1.72a.75.75 0 0 0 1.06 1.06L15 11.06l1.72 1.72a.75.75 0 1 0 1.06-1.06L16.06 10l1.72-1.72a.75.75 0 0 0-1.06-1.06L15 8.94l-1.72-1.72Z"/>
+                            </svg>
+                        </button>
                     </div>
                 </div>
                 <div class="mt-2.5 h-1 bg-slate-700/60 rounded-full overflow-hidden">
@@ -556,6 +564,74 @@ function showModal({ title, body, confirmLabel, confirmClass, onConfirm }) {
 }
 
 // =====================================================================
+// 7A. AUDIO (Web Audio API)
+// Mezcla sobre cualquier audio del sistema (podcast, música) sin interrumpirlo.
+// =====================================================================
+let audioCtx      = null;   // se crea la primera vez que se usa (requiere gesto previo)
+let audioMuted    = false;
+
+function audioGetCtx() {
+    if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    if (audioCtx.state === 'suspended') audioCtx.resume();
+    return audioCtx;
+}
+
+// Reproduce un tono sintético
+// freq: Hz | duration: segundos | volume: 0-1 | type: oscilador ('sine','square','triangle')
+// attack/release: segundos de fade in/out para evitar clicks
+function audioBeep({ freq = 220, duration = 0.08, volume = 0.18, type = 'sine', attack = 0.005, release = 0.04 } = {}) {
+    if (audioMuted) return;
+    try {
+        const ctx  = audioGetCtx();
+        const osc  = ctx.createOscillator();
+        const gain = ctx.createGain();
+        osc.connect(gain);
+        gain.connect(ctx.destination);
+        osc.type      = type;
+        osc.frequency.setValueAtTime(freq, ctx.currentTime);
+        gain.gain.setValueAtTime(0, ctx.currentTime);
+        gain.gain.linearRampToValueAtTime(volume, ctx.currentTime + attack);
+        gain.gain.setValueAtTime(volume, ctx.currentTime + duration - release);
+        gain.gain.linearRampToValueAtTime(0, ctx.currentTime + duration);
+        osc.start(ctx.currentTime);
+        osc.stop(ctx.currentTime + duration);
+    } catch(e) { /* Audio no disponible */ }
+}
+
+// Beat de metrónomo: tono grave corto (modo Cronómetro / trabajo)
+function audioBeatTick() {
+    audioBeep({ freq: 90, duration: 0.07, volume: 0.22, type: 'sine', attack: 0.003, release: 0.04 });
+}
+
+// Alertas de cuenta regresiva en el descanso
+function audioCountdownCue(secsLeft) {
+    if (secsLeft === 15) {
+        // Pitido suave de aviso
+        audioBeep({ freq: 520, duration: 0.12, volume: 0.18, type: 'sine' });
+    } else if (secsLeft === 10) {
+        // Pitido medio
+        audioBeep({ freq: 660, duration: 0.15, volume: 0.22, type: 'sine' });
+    } else if (secsLeft >= 1 && secsLeft <= 5) {
+        // Cuenta 5-4-3-2-1: pitch sube con la urgencia
+        const pitches = { 5: 700, 4: 760, 3: 820, 2: 900, 1: 980 };
+        audioBeep({ freq: pitches[secsLeft], duration: 0.18, volume: 0.28, type: 'sine' });
+    } else if (secsLeft === 0) {
+        // Final: doble pitido agudo
+        audioBeep({ freq: 1100, duration: 0.15, volume: 0.30, type: 'sine' });
+        setTimeout(() => audioBeep({ freq: 1100, duration: 0.2, volume: 0.30, type: 'sine' }), 200);
+    }
+}
+
+// Toggle mute
+function audioToggleMute() {
+    audioMuted = !audioMuted;
+    document.getElementById('mute-icon-on').classList.toggle('hidden', audioMuted);
+    document.getElementById('mute-icon-off').classList.toggle('hidden', !audioMuted);
+    document.getElementById('timer-mute').classList.toggle('text-slate-500', audioMuted);
+    document.getElementById('timer-mute').classList.toggle('text-slate-300', !audioMuted);
+}
+
+// =====================================================================
 // 7. CRONÓMETRO
 // Modos: 'stopwatch' (cuenta hacia arriba, siempre activo), 'countdown' (descanso)
 // =====================================================================
@@ -587,6 +663,7 @@ function timerStart(seconds) {
         if (timerPaused) return;
         timerRemaining--;
         updateTimerDisplay();
+        audioCountdownCue(timerRemaining);
         if (timerRemaining <= 0) { timerStop(); timerCountdownFinished(); }
     }, 1000);
 }
@@ -619,6 +696,8 @@ function timerStartStopwatch() {
         // barra oscila 0→100 cada 60s para dar feedback visual
         const pct = ((timerElapsed % 60) / 60) * 100;
         ui.timerBar.style.width = pct + '%';
+        // Beat de metrónomo para llevar el tempo de la serie
+        audioBeatTick();
     }, 1000);
 }
 
@@ -663,6 +742,7 @@ ui.timerSkip.addEventListener('click', () => {
     timerStop();
     timerStartStopwatch();
 });
+document.getElementById('timer-mute').addEventListener('click', audioToggleMute);
 
 // =====================================================================
 // 8. NAVEGACIÓN
