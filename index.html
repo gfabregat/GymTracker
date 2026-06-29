@@ -671,10 +671,11 @@ function timerStart(seconds) {
 // Cuando el countdown llega a 0, arranca automáticamente el stopwatch
 function timerCountdownFinished() {
     ui.timerWidget.classList.add('timer-alert');
-    setTimeout(() => {
-        ui.timerWidget.classList.remove('timer-alert');
-        timerStartStopwatch();
-    }, 1200);
+    // El stopwatch arranca de inmediato para que el primer beat
+    // suene al segundo siguiente sin delay perceptible.
+    // El efecto visual de pulso rojo se quita a los 1200ms en paralelo.
+    timerStartStopwatch();
+    setTimeout(() => ui.timerWidget.classList.remove('timer-alert'), 1200);
 }
 
 // Inicia (o reinicia) el modo stopwatch (cuenta hacia arriba)
