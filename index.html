@@ -868,10 +868,16 @@ async function navigateToWorkout(sessionName, semana) {
         blockMap[baseKey].subgroups[code].series.push(row);
     });
 
+    // Cargar notas persistentes de todos los ejercicios del entrenamiento
+    const ejerciciosUnicos = [...new Set(rows.map(r => r.Ejercicio))];
+    const notasArr = await db.Notas_Ejercicio.where('Ejercicio').anyOf(ejerciciosUnicos).toArray();
+    const notasMap = {};
+    notasArr.forEach(n => { notasMap[n.Ejercicio] = n.nota; });
+
     blockKeys.forEach(baseKey => {
         const block = blockMap[baseKey], subgroups = Object.values(block.subgroups);
         if (!block.isSuperset) {
-            ui.exercisesContainer.appendChild(buildExerciseBlock(subgroups[0], false, existingLogs, prevWeekLogs));
+            ui.exercisesContainer.appendChild(buildExerciseBlock(subgroups[0], false, existingLogs, prevWeekLogs, true, notasMap));
         } else {
             const superWrapper = document.createElement('div');
             superWrapper.className = 'border border-violet-500/20 rounded-2xl overflow-hidden';
@@ -882,7 +888,7 @@ async function navigateToWorkout(sessionName, semana) {
             const maxSeries = Math.max(...subgroups.map(sg => sg.series.length));
             for (let serieIdx = 0; serieIdx < maxSeries; serieIdx++) {
                 subgroups.forEach(sg => {
-                    if (serieIdx < sg.series.length) superWrapper.appendChild(buildExerciseBlock({ Ejercicio: sg.Ejercicio, Codigo_Orden: sg.Codigo_Orden, series: [sg.series[serieIdx]] }, true, existingLogs, prevWeekLogs, serieIdx === 0));
+                    if (serieIdx < sg.series.length) superWrapper.appendChild(buildExerciseBlock({ Ejercicio: sg.Ejercicio, Codigo_Orden: sg.Codigo_Orden, series: [sg.series[serieIdx]] }, true, existingLogs, prevWeekLogs, serieIdx === 0, notasMap));
                 });
             }
             ui.exercisesContainer.appendChild(superWrapper);
@@ -894,58 +900,119 @@ async function navigateToWorkout(sessionName, semana) {
     history.pushState({ screen: 'workout' }, '');
 }
 
-function buildExerciseBlock(exGroup, isSuperset, existingLogs, prevWeekLogs, showHeader = true) {
+// Helper: construye el header de un ejercicio (compartido entre normal y superserie)
+function buildExerciseHeader(Ejercicio, Codigo_Orden, isSuperset, isCompact) {
+    const wrapper = document.createElement('div');
+    wrapper.className = isCompact ? 'flex items-center justify-between gap-2 pt-1' : 'flex items-start justify-between gap-2';
+    const codeBadgeClass = isSuperset
+        ? 'bg-violet-500/20 text-violet-300 border border-violet-500/20'
+        : 'bg-indigo-500/15 text-indigo-300 border border-indigo-500/20';
+    const nameTag = isCompact
+        ? `<span class="text-sm font-bold text-slate-100 truncate">${Ejercicio}</span>`
+        : `<h3 class="font-bold text-sm text-slate-100 leading-snug">${Ejercicio}</h3>`;
+    wrapper.innerHTML = `
+        <div class="flex items-${isCompact ? 'center' : 'start'} gap-2 min-w-0 flex-1">
+            <span class="shrink-0 ${isCompact ? '' : 'mt-0.5'} px-2 py-0.5 rounded-lg text-[11px] font-black tracking-wider ${codeBadgeClass}">${Codigo_Orden}</span>
+            ${nameTag}
+        </div>
+        <div class="flex items-center gap-1.5 shrink-0">
+            <button class="w-8 h-8 flex items-center justify-center rounded-xl bg-slate-800/80 hover:bg-red-600/80 text-slate-400 hover:text-white transition-all active:scale-95" data-action="youtube-search" title="Buscar en YouTube">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="w-3.5 h-3.5"><path d="M19.615 3.184c-3.604-.246-11.631-.245-15.23 0C.488 3.45.029 5.804 0 12c.029 6.185.484 8.549 4.385 8.816 3.6.245 11.626.246 15.23 0C23.512 20.55 23.971 18.196 24 12c-.029-6.185-.484-8.549-4.385-8.816zM9 16V8l8 3.993L9 16z"/></svg>
+            </button>
+            <button class="w-8 h-8 flex items-center justify-center rounded-xl bg-slate-800/80 hover:bg-slate-700 text-slate-400 hover:text-indigo-400 transition-all active:scale-95" data-action="history-lookup">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" class="w-3.5 h-3.5"><path fill-rule="evenodd" d="M9 3.5a5.5 5.5 0 1 0 0 11 5.5 5.5 0 0 0 0-11ZM2 9a7 7 0 1 1 12.452 4.391l3.328 3.329a.75.75 0 1 1-1.06 1.06l-3.329-3.328A7 7 0 0 1 2 9Z" clip-rule="evenodd" /></svg>
+            </button>
+        </div>`;
+    wrapper.querySelector('[data-action="youtube-search"]').addEventListener('click', e => { e.stopPropagation(); window.open('https://www.youtube.com/results?search_query=' + encodeURIComponent(Ejercicio), '_blank'); });
+    wrapper.querySelector('[data-action="history-lookup"]').addEventListener('click', e => { e.stopPropagation(); openHistoryModal(Ejercicio); });
+    return wrapper;
+}
+
+// Helper: construye el widget de nota para un ejercicio
+function buildNoteWidget(Ejercicio, notaActual) {
+    const widget = document.createElement('div');
+    widget.className = 'nota-widget';
+
+    const renderClosed = (texto) => {
+        widget.innerHTML = '';
+        if (texto) {
+            // Nota existente: mostrar texto + botón editar
+            const row = document.createElement('div');
+            row.className = 'flex items-start gap-2 px-1 py-1';
+            row.innerHTML = `
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" fill="currentColor" class="w-3 h-3 text-amber-400/70 shrink-0 mt-0.5">
+                    <path d="M13.488 2.513a1.75 1.75 0 0 0-2.475 0L6.75 6.774a2.75 2.75 0 0 0-.596.892l-.848 2.047a.75.75 0 0 0 .98.98l2.047-.848a2.75 2.75 0 0 0 .892-.596l4.261-4.263a1.75 1.75 0 0 0 0-2.474ZM4.75 7.5A.75.75 0 0 0 4 8.25v1.5c0 .966.784 1.75 1.75 1.75h4.5A1.75 1.75 0 0 0 12 9.75V8.25a.75.75 0 0 0-1.5 0v1.5a.25.25 0 0 1-.25.25h-4.5a.25.25 0 0 1-.25-.25v-1.5a.75.75 0 0 0-.75-.75Z"/>
+                </svg>
+                <span class="text-[11px] text-amber-300/80 leading-snug flex-1">${texto}</span>
+                <button data-action="nota-edit" class="text-[10px] text-slate-500 hover:text-slate-300 shrink-0 transition-colors">editar</button>`;
+            row.querySelector('[data-action="nota-edit"]').addEventListener('click', () => renderOpen(texto));
+            widget.appendChild(row);
+        } else {
+            // Sin nota: mostrar botón discreto para agregar
+            const addBtn = document.createElement('button');
+            addBtn.className = 'text-[10px] text-slate-600 hover:text-slate-400 px-1 py-0.5 transition-colors flex items-center gap-1';
+            addBtn.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" fill="currentColor" class="w-2.5 h-2.5"><path d="M8.75 3.75a.75.75 0 0 0-1.5 0v3.5h-3.5a.75.75 0 0 0 0 1.5h3.5v3.5a.75.75 0 0 0 1.5 0v-3.5h3.5a.75.75 0 0 0 0-1.5h-3.5v-3.5Z"/></svg> Agregar nota`;
+            addBtn.addEventListener('click', () => renderOpen(''));
+            widget.appendChild(addBtn);
+        }
+    };
+
+    const renderOpen = (textoActual) => {
+        widget.innerHTML = '';
+        const form = document.createElement('div');
+        form.className = 'flex items-center gap-2 px-1';
+        form.innerHTML = `
+            <input type="text" maxlength="120" placeholder="ej: banco a 30°, asiento en pos. 6..." value="${textoActual.replace(/"/g, '&quot;')}"
+                class="flex-1 bg-slate-800 border border-amber-500/30 rounded-lg px-2.5 py-1.5 text-xs text-slate-200 placeholder-slate-600 focus:outline-none focus:border-amber-400/60 transition-colors" />
+            <button data-action="nota-save" class="h-7 px-2.5 rounded-lg bg-amber-600/80 hover:bg-amber-500 text-white text-xs font-bold transition-all active:scale-95 shrink-0">✓</button>
+            <button data-action="nota-cancel" class="h-7 px-2 rounded-lg bg-slate-700 hover:bg-slate-600 text-slate-300 text-xs transition-all active:scale-95 shrink-0">✕</button>`;
+        const input = form.querySelector('input');
+        form.querySelector('[data-action="nota-save"]').addEventListener('click', async () => {
+            const val = input.value.trim();
+            if (val) {
+                await db.Notas_Ejercicio.put({ Ejercicio, nota: val });
+            } else {
+                await db.Notas_Ejercicio.delete(Ejercicio);
+            }
+            renderClosed(val);
+        });
+        form.querySelector('[data-action="nota-cancel"]').addEventListener('click', () => renderClosed(textoActual));
+        // Guardar con Enter
+        input.addEventListener('keydown', async (e) => {
+            if (e.key === 'Enter') { e.preventDefault(); form.querySelector('[data-action="nota-save"]').click(); }
+            if (e.key === 'Escape') { form.querySelector('[data-action="nota-cancel"]').click(); }
+        });
+        widget.appendChild(form);
+        setTimeout(() => { input.focus(); input.setSelectionRange(9999, 9999); }, 50);
+    };
+
+    renderClosed(notaActual);
+    return widget;
+}
+
+function buildExerciseBlock(exGroup, isSuperset, existingLogs, prevWeekLogs, showHeader = true, notasMap = {}) {
     const { Ejercicio, Codigo_Orden, series } = exGroup;
     const block = document.createElement('div');
     block.className = isSuperset ? 'bg-violet-950/10 px-4 py-3 space-y-3' : 'bg-slate-900 border border-slate-800/70 rounded-2xl px-4 py-4 space-y-3';
 
     if (showHeader) {
+        block.appendChild(buildExerciseHeader(Ejercicio, Codigo_Orden, isSuperset, false));
+
+        // Nota del ejercicio (persistente)
+        const notaActual = notasMap[Ejercicio] || '';
+        block.appendChild(buildNoteWidget(Ejercicio, notaActual));
+
         const ref = series[0];
         const tempoDisplay    = ref.Tempo && ref.Tempo !== '0' && ref.Tempo !== '0000' ? ref.Tempo : '—';
         const descansoSecs    = ref.Descanso_Segundos;
         const descansoDisplay = descansoSecs ? (descansoSecs >= 60 ? `${Math.floor(descansoSecs/60)}min${descansoSecs%60>0?descansoSecs%60+'s':''}` : `${descansoSecs}s`) : '—';
-        const headerEl = document.createElement('div');
-        headerEl.className = 'flex items-start justify-between gap-2';
-        headerEl.innerHTML = `
-            <div class="flex items-start gap-2 min-w-0 flex-1">
-                <span class="shrink-0 mt-0.5 px-2 py-0.5 rounded-lg text-[11px] font-black tracking-wider ${isSuperset ? 'bg-violet-500/20 text-violet-300 border border-violet-500/20' : 'bg-indigo-500/15 text-indigo-300 border border-indigo-500/20'}">${Codigo_Orden}</span>
-                <h3 class="font-bold text-sm text-slate-100 leading-snug">${Ejercicio}</h3>
-            </div>
-            <div class="flex items-center gap-1.5 shrink-0">
-                <button class="w-8 h-8 flex items-center justify-center rounded-xl bg-slate-800/80 hover:bg-red-600/80 text-slate-400 hover:text-white transition-all active:scale-95" data-action="youtube-search" title="Buscar en YouTube">
-                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="w-3.5 h-3.5"><path d="M19.615 3.184c-3.604-.246-11.631-.245-15.23 0C.488 3.45.029 5.804 0 12c.029 6.185.484 8.549 4.385 8.816 3.6.245 11.626.246 15.23 0C23.512 20.55 23.971 18.196 24 12c-.029-6.185-.484-8.549-4.385-8.816zM9 16V8l8 3.993L9 16z"/></svg>
-                </button>
-                <button class="w-8 h-8 flex items-center justify-center rounded-xl bg-slate-800/80 hover:bg-slate-700 text-slate-400 hover:text-indigo-400 transition-all active:scale-95" data-action="history-lookup">
-                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" class="w-3.5 h-3.5"><path fill-rule="evenodd" d="M9 3.5a5.5 5.5 0 1 0 0 11 5.5 5.5 0 0 0 0-11ZM2 9a7 7 0 1 1 12.452 4.391l3.328 3.329a.75.75 0 1 1-1.06 1.06l-3.329-3.328A7 7 0 0 1 2 9Z" clip-rule="evenodd" /></svg>
-                </button>
-            </div>`;
-        headerEl.querySelector('[data-action="youtube-search"]').addEventListener('click', e => { e.stopPropagation(); window.open('https://www.youtube.com/results?search_query=' + encodeURIComponent(Ejercicio), '_blank'); });
-        headerEl.querySelector('[data-action="history-lookup"]').addEventListener('click', e => { e.stopPropagation(); openHistoryModal(Ejercicio); });
-        block.appendChild(headerEl);
         const metaEl = document.createElement('div');
         metaEl.className = 'flex gap-x-4 gap-y-0.5 flex-wrap px-1';
         metaEl.innerHTML = `<span class="text-[11px] text-slate-400"><span class="text-slate-500 font-medium">Obj.</span> ${ref.Reps_Objetivo} reps</span><span class="text-[11px] text-slate-400"><span class="text-slate-500 font-medium">Int.</span> ${ref.Intensidad_Objetivo}</span><span class="text-[11px] text-slate-400"><span class="text-slate-500 font-medium">Tempo</span> ${tempoDisplay}</span><span class="text-[11px] text-slate-400"><span class="text-slate-500 font-medium">Desc.</span> ${descansoDisplay}</span>`;
         block.appendChild(metaEl);
         block.appendChild(Object.assign(document.createElement('div'), { className: 'border-t border-slate-800/60' }));
     } else if (isSuperset) {
-        const compactHeader = document.createElement('div');
-        compactHeader.className = 'flex items-center justify-between gap-2 pt-1';
-        compactHeader.innerHTML = `
-            <div class="flex items-center gap-2 min-w-0 flex-1">
-                <span class="shrink-0 px-2 py-0.5 rounded-lg text-[11px] font-black tracking-wider bg-violet-500/20 text-violet-300 border border-violet-500/20">${Codigo_Orden}</span>
-                <span class="text-sm font-bold text-slate-100 truncate">${Ejercicio}</span>
-            </div>
-            <div class="flex items-center gap-1.5 shrink-0">
-                <button class="w-8 h-8 flex items-center justify-center rounded-xl bg-slate-800/80 hover:bg-red-600/80 text-slate-400 hover:text-white transition-all active:scale-95" data-action="youtube-search" title="Buscar en YouTube">
-                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="w-3.5 h-3.5"><path d="M19.615 3.184c-3.604-.246-11.631-.245-15.23 0C.488 3.45.029 5.804 0 12c.029 6.185.484 8.549 4.385 8.816 3.6.245 11.626.246 15.23 0C23.512 20.55 23.971 18.196 24 12c-.029-6.185-.484-8.549-4.385-8.816zM9 16V8l8 3.993L9 16z"/></svg>
-                </button>
-                <button class="w-8 h-8 flex items-center justify-center rounded-xl bg-slate-800/80 hover:bg-slate-700 text-slate-400 hover:text-indigo-400 transition-all active:scale-95" data-action="history-lookup">
-                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" class="w-3.5 h-3.5"><path fill-rule="evenodd" d="M9 3.5a5.5 5.5 0 1 0 0 11 5.5 5.5 0 0 0 0-11ZM2 9a7 7 0 1 1 12.452 4.391l3.328 3.329a.75.75 0 1 1-1.06 1.06l-3.329-3.328A7 7 0 0 1 2 9Z" clip-rule="evenodd" /></svg>
-                </button>
-            </div>`;
-        compactHeader.querySelector('[data-action="youtube-search"]').addEventListener('click', e => { e.stopPropagation(); window.open('https://www.youtube.com/results?search_query=' + encodeURIComponent(Ejercicio), '_blank'); });
-        compactHeader.querySelector('[data-action="history-lookup"]').addEventListener('click', e => { e.stopPropagation(); openHistoryModal(Ejercicio); });
-        block.appendChild(compactHeader);
+        block.appendChild(buildExerciseHeader(Ejercicio, Codigo_Orden, isSuperset, true));
     }
     series.forEach(serieRow => block.appendChild(buildSerieRow(serieRow, existingLogs, prevWeekLogs)));
     return block;
@@ -955,10 +1022,6 @@ function buildSerieRow(serieRow, existingLogs, prevWeekLogs) {
     const existingLog = existingLogs.find(l => l.Ejercicio === serieRow.Ejercicio && l.Serie === serieRow.Serie);
     const isDone      = !!existingLog;
     const prevLog     = prevWeekLogs.find(l => normalizeText(l.Ejercicio) === normalizeText(serieRow.Ejercicio) && l.Serie === serieRow.Serie);
-    const row = document.createElement('div');
-    row.className = `space-y-1.5 ${isDone ? 'serie-done' : ''}`;
-    const pesoInicial = isDone ? (existingLog.Peso_Real ?? '') : '';
-    const repsInicial = isDone ? (existingLog.Reps_Reales ?? '') : '';
 
     // Hint de semana anterior
     let prevHint = '';
@@ -971,41 +1034,111 @@ function buildSerieRow(serieRow, existingLogs, prevWeekLogs) {
 
     // Meta compacta por serie: RIR y reps objetivo (sin RPE)
     const repsObj  = serieRow.Reps_Objetivo || '';
-    // Filtrar RPE: solo mostrar si es RIR, o si no menciona RPE
     const intObj   = serieRow.Intensidad_Objetivo || '';
     const showInt  = intObj && !intObj.toUpperCase().startsWith('RPE');
     const tempoVal = serieRow.Tempo && serieRow.Tempo !== '0' && serieRow.Tempo !== '0000' ? serieRow.Tempo : '';
     const metaParts = [];
-    if (repsObj) metaParts.push(`<span class="text-slate-500">Obj.</span> ${repsObj}`);
-    if (showInt)  metaParts.push(`<span class="text-slate-500">${intObj.toUpperCase().startsWith('RIR') ? '' : ''}${intObj}</span>`);
+    if (repsObj)  metaParts.push(`<span class="text-slate-500">Obj.</span> ${repsObj}`);
+    if (showInt)  metaParts.push(`${intObj}`);
     if (tempoVal) metaParts.push(`<span class="text-slate-500">Tempo</span> ${tempoVal}`);
     const metaHtml = metaParts.length
         ? `<p class="text-[10px] text-slate-500 px-1 leading-tight">${metaParts.join(' · ')}</p>`
         : '';
 
-    row.innerHTML = `
-        ${prevHint}
-        ${metaHtml}
-        <div class="flex items-center gap-3">
-            <span class="w-7 text-center text-xs font-black text-slate-500 shrink-0">${serieRow.Serie}</span>
-            <div class="flex-1 flex gap-2">
-                <div class="flex-1 relative">
-                    <input type="number" inputmode="decimal" placeholder="kg" value="${pesoInicial}" class="w-full bg-slate-800 border border-slate-700/60 rounded-xl px-3 py-2.5 text-base font-bold text-center text-slate-100 placeholder-slate-600 focus:outline-none focus:border-indigo-500/60 transition-colors" data-field="peso" />
-                    <span class="absolute right-2.5 top-1/2 -translate-y-1/2 text-[10px] text-slate-500 pointer-events-none">kg</span>
-                </div>
-                <div class="flex-1">
-                    <input type="number" inputmode="numeric" placeholder="reps" value="${repsInicial}" class="w-full bg-slate-800 border border-slate-700/60 rounded-xl px-3 py-2.5 text-base font-bold text-center text-slate-100 placeholder-slate-600 focus:outline-none focus:border-indigo-500/60 transition-colors" data-field="reps" />
-                </div>
-            </div>
-            <button class="shrink-0 w-11 h-11 flex items-center justify-center rounded-xl transition-all active:scale-90 ${isDone ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/20' : 'bg-slate-800 hover:bg-indigo-600 text-slate-400 hover:text-white border border-slate-700/60 hover:border-indigo-500'}" data-action="check" ${isDone ? 'disabled' : ''}>
+    const row = document.createElement('div');
+    row.className = `space-y-1.5 ${isDone ? 'serie-done' : ''}`;
+
+    const renderRow = (editMode = false) => {
+        const pesoVal = isDone ? (existingLog.Peso_Real ?? '') : '';
+        const repsVal = isDone ? (existingLog.Reps_Reales ?? '') : '';
+
+        // En edit mode: quitar serie-done para poder editar
+        if (editMode) {
+            row.classList.remove('serie-done');
+        } else if (isDone) {
+            row.classList.add('serie-done');
+        }
+
+        // Botón derecho: check (pendiente), lápiz (done normal), guardar (done editando)
+        let btnHtml;
+        if (!isDone) {
+            btnHtml = `<button class="shrink-0 w-11 h-11 flex items-center justify-center rounded-xl transition-all active:scale-90 bg-slate-800 hover:bg-indigo-600 text-slate-400 hover:text-white border border-slate-700/60 hover:border-indigo-500" data-action="check">
                 <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor" class="w-5 h-5"><path stroke-linecap="round" stroke-linejoin="round" d="m4.5 12.75 6 6 9-13.5" /></svg>
-            </button>
-        </div>`;
-    row.querySelector('[data-action="check"]').addEventListener('click', () => handleCheckSerie(row, serieRow));
+            </button>`;
+        } else if (editMode) {
+            btnHtml = `<button class="shrink-0 w-11 h-11 flex items-center justify-center rounded-xl transition-all active:scale-90 bg-indigo-600 hover:bg-indigo-500 text-white border border-indigo-500" data-action="save-edit">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor" class="w-5 h-5"><path stroke-linecap="round" stroke-linejoin="round" d="m4.5 12.75 6 6 9-13.5" /></svg>
+            </button>`;
+        } else {
+            // done, no edit: check verde + botón lápiz pequeño
+            btnHtml = `<div class="flex flex-col items-center gap-1 shrink-0">
+                <div class="w-11 h-8 flex items-center justify-center rounded-t-xl bg-emerald-500/20 text-emerald-400 border border-emerald-500/20 border-b-0">
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor" class="w-4 h-4"><path stroke-linecap="round" stroke-linejoin="round" d="m4.5 12.75 6 6 9-13.5" /></svg>
+                </div>
+                <button data-action="edit" class="w-11 h-5 flex items-center justify-center rounded-b-xl bg-slate-700/60 hover:bg-slate-600 text-slate-400 hover:text-slate-200 border border-slate-700/50 border-t-0 transition-all active:scale-95">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" fill="currentColor" class="w-2.5 h-2.5"><path d="M13.488 2.513a1.75 1.75 0 0 0-2.475 0L6.75 6.774a2.75 2.75 0 0 0-.596.892l-.848 2.047a.75.75 0 0 0 .98.98l2.047-.848a2.75 2.75 0 0 0 .892-.596l4.261-4.263a1.75 1.75 0 0 0 0-2.474ZM4.75 7.5A.75.75 0 0 0 4 8.25v1.5c0 .966.784 1.75 1.75 1.75h4.5A1.75 1.75 0 0 0 12 9.75V8.25a.75.75 0 0 0-1.5 0v1.5a.25.25 0 0 1-.25.25h-4.5a.25.25 0 0 1-.25-.25v-1.5a.75.75 0 0 0-.75-.75Z"/></svg>
+                </button>
+            </div>`;
+        }
+
+        row.innerHTML = `
+            ${prevHint}
+            ${metaHtml}
+            <div class="flex items-center gap-3">
+                <span class="w-7 text-center text-xs font-black text-slate-500 shrink-0">${serieRow.Serie}</span>
+                <div class="flex-1 flex gap-2">
+                    <div class="flex-1 relative">
+                        <input type="number" inputmode="decimal" placeholder="kg" value="${editMode ? pesoVal : (!isDone ? '' : pesoVal)}"
+                            class="w-full bg-slate-800 border ${editMode ? 'border-indigo-500/60' : 'border-slate-700/60'} rounded-xl px-3 py-2.5 text-base font-bold text-center text-slate-100 placeholder-slate-600 focus:outline-none focus:border-indigo-500/60 transition-colors" data-field="peso" />
+                        <span class="absolute right-2.5 top-1/2 -translate-y-1/2 text-[10px] text-slate-500 pointer-events-none">kg</span>
+                    </div>
+                    <div class="flex-1">
+                        <input type="number" inputmode="numeric" placeholder="reps" value="${editMode ? repsVal : (!isDone ? '' : repsVal)}"
+                            class="w-full bg-slate-800 border ${editMode ? 'border-indigo-500/60' : 'border-slate-700/60'} rounded-xl px-3 py-2.5 text-base font-bold text-center text-slate-100 placeholder-slate-600 focus:outline-none focus:border-indigo-500/60 transition-colors" data-field="reps" />
+                    </div>
+                </div>
+                ${btnHtml}
+            </div>`;
+
+        // Asignar eventos según estado
+        if (!isDone) {
+            row.querySelector('[data-action="check"]').addEventListener('click', () => handleCheckSerie(row, serieRow, existingLogs));
+        } else if (editMode) {
+            // Guardar edición
+            row.querySelector('[data-action="save-edit"]').addEventListener('click', async () => {
+                const pesoInput = row.querySelector('[data-field="peso"]');
+                const repsInput = row.querySelector('[data-field="reps"]');
+                const peso = parseFloat(pesoInput.value);
+                const reps = parseInt(repsInput.value, 10);
+                if (isNaN(peso) && isNaN(reps)) {
+                    [pesoInput, repsInput].forEach(el => { el.classList.add('border-red-500/60'); setTimeout(() => el.classList.remove('border-red-500/60'), 1500); });
+                    return;
+                }
+                await db.Log_Ejecucion_Global.update(existingLog.id, {
+                    Peso_Real:   isNaN(peso) ? null : peso,
+                    Reps_Reales: isNaN(reps) ? null : reps,
+                });
+                // Actualizar en memoria para que renderRow use los nuevos valores
+                existingLog.Peso_Real   = isNaN(peso) ? null : peso;
+                existingLog.Reps_Reales = isNaN(reps) ? null : reps;
+                toast('✓ Marca actualizada', 'emerald');
+                renderRow(false);
+            });
+        } else {
+            // Botón lápiz → entrar en edit mode
+            row.querySelector('[data-action="edit"]').addEventListener('click', () => {
+                row.classList.remove('serie-done');
+                renderRow(true);
+                setTimeout(() => row.querySelector('[data-field="peso"]').focus(), 50);
+            });
+        }
+    };
+
+    renderRow(false);
     return row;
 }
 
-async function handleCheckSerie(rowEl, serieRow) {
+async function handleCheckSerie(rowEl, serieRow, existingLogs) {
     const pesoInput = rowEl.querySelector('[data-field="peso"]');
     const repsInput = rowEl.querySelector('[data-field="reps"]');
     const peso = parseFloat(pesoInput.value), reps = parseInt(repsInput.value, 10);
@@ -1013,14 +1146,24 @@ async function handleCheckSerie(rowEl, serieRow) {
         [pesoInput, repsInput].forEach(el => { el.classList.add('border-red-500/60'); setTimeout(() => el.classList.remove('border-red-500/60'), 1500); });
         return;
     }
-    await db.Log_Ejecucion_Global.add({
+    const newId = await db.Log_Ejecucion_Global.add({
         Fecha: new Date().toISOString(), Semana: activeSessionWeek, Entrenamiento: activeSession,
         Ejercicio: serieRow.Ejercicio, Codigo_Orden: serieRow.Codigo_Orden, Serie: serieRow.Serie,
         Peso_Real: isNaN(peso) ? null : peso, Reps_Reales: isNaN(reps) ? null : reps,
     });
+    // Actualizar existingLogs en memoria para que el botón editar funcione inmediatamente
+    if (existingLogs) {
+        existingLogs.push({
+            id: newId, Ejercicio: serieRow.Ejercicio, Serie: serieRow.Serie,
+            Peso_Real: isNaN(peso) ? null : peso, Reps_Reales: isNaN(reps) ? null : reps,
+        });
+    }
     rowEl.classList.add('serie-done');
     const btn = rowEl.querySelector('[data-action="check"]');
-    btn.disabled = true; btn.className = 'shrink-0 w-11 h-11 flex items-center justify-center rounded-xl bg-emerald-500/20 text-emerald-400 border border-emerald-500/20 transition-all';
+    if (btn) {
+        btn.disabled = true;
+        btn.className = 'shrink-0 w-11 h-11 flex items-center justify-center rounded-xl bg-emerald-500/20 text-emerald-400 border border-emerald-500/20 transition-all';
+    }
     if (serieRow.Descanso_Segundos > 0) timerStart(serieRow.Descanso_Segundos);
 }
 
