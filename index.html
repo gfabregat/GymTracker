@@ -63,6 +63,9 @@
                 <span>Seleccionar Archivo</span>
                 <input type="file" id="csv-input" accept=".csv" class="hidden" />
             </label>
+            <button id="btn-upload-restore" type="button" class="mt-3 w-full bg-slate-800 hover:bg-slate-700 active:scale-[0.98] text-slate-300 font-semibold py-3 px-4 rounded-xl transition-all border border-slate-700/60 text-center text-sm">
+                Restaurar copia de seguridad
+            </button>
             <div id="upload-loading" class="hidden mt-4 flex items-center justify-center gap-2 text-slate-400 text-sm">
                 <svg class="animate-spin w-4 h-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
                     <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
@@ -269,6 +272,18 @@
                 </div>
             </div>
 
+            <!-- Sección: Zona de peligro -->
+            <div>
+                <p class="text-[11px] font-bold text-red-500/70 uppercase tracking-widest px-1 mb-3">Zona de Peligro</p>
+                <div class="bg-slate-900 border border-red-500/10 rounded-2xl p-4">
+                    <p class="text-sm font-bold text-slate-100">Borrar historial completo</p>
+                    <p class="text-xs text-slate-500 mt-0.5 leading-relaxed">Elimina todas las series registradas de forma permanente. Recomendado: exportá una copia de seguridad antes.</p>
+                    <button id="btn-clear-history" class="mt-4 w-full py-2.5 rounded-xl bg-red-600/90 hover:bg-red-600 active:scale-[0.98] text-white text-sm font-bold transition-all border border-red-500/50">
+                        Borrar historial
+                    </button>
+                </div>
+            </div>
+
         </div>
     </section>
 
@@ -313,14 +328,14 @@
                     <input type="checkbox" id="import-check-log" class="custom-check" checked />
                     <div>
                         <p class="text-sm font-semibold text-slate-200">Historial de series</p>
-                        <p class="text-xs text-slate-500">Log_Ejecucion_Global — todos tus registros históricos</p>
+                        <p class="text-xs text-slate-500">Series registradas y notas de ejercicios</p>
                     </div>
                 </label>
                 <label class="flex items-center gap-3 p-3 bg-slate-800/60 rounded-xl cursor-pointer">
                     <input type="checkbox" id="import-check-plan" class="custom-check" />
                     <div>
                         <p class="text-sm font-semibold text-slate-200">Planificación del ciclo</p>
-                        <p class="text-xs text-slate-500">Planificacion_Actual — sobreescribe la rutina cargada</p>
+                        <p class="text-xs text-slate-500">Rutina cargada y estado de entrenos finalizados</p>
                     </div>
                 </label>
             </div>
@@ -370,8 +385,8 @@ const MANIFEST = {
     background_color: '#020617',
     theme_color: '#020617',
     icons: [
-        { src: 'data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><rect width="100" height="100" rx="22" fill="%234f46e5"/><text y=".9em" font-size="72" x="50%" dominant-baseline="middle" text-anchor="middle">💪</text></svg>', sizes: '192x192', type: 'image/svg+xml' },
-        { src: 'data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><rect width="100" height="100" rx="22" fill="%234f46e5"/><text y=".9em" font-size="72" x="50%" dominant-baseline="middle" text-anchor="middle">💪</text></svg>', sizes: '512x512', type: 'image/svg+xml' }
+        { src: 'data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><rect width="100" height="100" rx="22" fill="%234f46e5"/><rect x="30.8" y="46.2" width="38.5" height="7.7" rx="3.8" fill="white"/><rect x="26.2" y="26.9" width="13.8" height="46.2" rx="6.9" fill="white"/><rect x="60" y="26.9" width="13.8" height="46.2" rx="6.9" fill="white"/><rect x="18.5" y="34.6" width="7.7" height="30.8" rx="3.8" fill="white"/><rect x="73.8" y="34.6" width="7.7" height="30.8" rx="3.8" fill="white"/></svg>', sizes: '192x192', type: 'image/svg+xml' },
+        { src: 'data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><rect width="100" height="100" rx="22" fill="%234f46e5"/><rect x="30.8" y="46.2" width="38.5" height="7.7" rx="3.8" fill="white"/><rect x="26.2" y="26.9" width="13.8" height="46.2" rx="6.9" fill="white"/><rect x="60" y="26.9" width="13.8" height="46.2" rx="6.9" fill="white"/><rect x="18.5" y="34.6" width="7.7" height="30.8" rx="3.8" fill="white"/><rect x="73.8" y="34.6" width="7.7" height="30.8" rx="3.8" fill="white"/></svg>', sizes: '512x512', type: 'image/svg+xml' }
     ]
 };
 
@@ -459,6 +474,7 @@ let activeNavTab      = 'home';
 // =====================================================================
 const ui = {
     screenUpload:          document.getElementById('screen-upload'),
+    btnUploadRestore:      document.getElementById('btn-upload-restore'),
     screenHome:            document.getElementById('screen-home'),
     screenWorkout:         document.getElementById('screen-workout'),
     screenHistory:         document.getElementById('screen-history'),
@@ -496,6 +512,7 @@ const ui = {
     importInput:           document.getElementById('import-input'),
     statLogCount:          document.getElementById('stat-log-count'),
     statPlanCount:         document.getElementById('stat-plan-count'),
+    btnClearHistory:       document.getElementById('btn-clear-history'),
     // Modal confirmación
     modalOverlay:          document.getElementById('modal-overlay'),
     modalTitle:            document.getElementById('modal-title'),
@@ -1528,11 +1545,18 @@ ui.btnExport.addEventListener('click', async () => {
     try {
         const planificacion = await db.Planificacion_Actual.toArray();
         const log           = await db.Log_Ejecucion_Global.toArray();
+        const notas         = await db.Notas_Ejercicio.toArray();
+        // Los estados de "Finalizado" viven en localStorage, no en IndexedDB.
+        // Se incluyen en el backup para no perderlos al restaurar en otro dispositivo o tras limpiar datos.
+        const finishedFlags = {};
+        Object.keys(localStorage).forEach(k => { if (k.startsWith('finished_')) finishedFlags[k] = localStorage.getItem(k); });
         const backup = {
-            version:       '1.0.0',
+            version:       '1.1.0',
             exportDate:    new Date().toISOString(),
             Planificacion_Actual:  planificacion,
             Log_Ejecucion_Global:  log,
+            Notas_Ejercicio:       notas,
+            finishedFlags:         finishedFlags,
         };
         const blob     = new Blob([JSON.stringify(backup, null, 2)], { type: 'application/json' });
         const url      = URL.createObjectURL(blob);
@@ -1552,6 +1576,8 @@ ui.btnExport.addEventListener('click', async () => {
 
 // --- IMPORTAR: selección de archivo → mostrar modal con checkboxes ---
 let pendingImportData = null;
+
+ui.btnUploadRestore.addEventListener('click', () => ui.importInput.click());
 
 ui.importInput.addEventListener('change', function(e) {
     const file = e.target.files[0]; if (!file) return;
@@ -1596,13 +1622,18 @@ ui.importModalConfirm.addEventListener('click', async () => {
     ui.importModalOverlay.classList.add('hidden');
 
     try {
-        await db.transaction('rw', db.Log_Ejecucion_Global, db.Planificacion_Actual, async () => {
+        await db.transaction('rw', db.Log_Ejecucion_Global, db.Planificacion_Actual, db.Notas_Ejercicio, async () => {
             if (restoreLog && pendingImportData.Log_Ejecucion_Global?.length) {
                 // Append-only: agrega sin borrar el historial existente
                 const incoming = pendingImportData.Log_Ejecucion_Global.map(r => {
                     const { id, ...rest } = r; return rest; // quitar id para evitar conflictos
                 });
                 await db.Log_Ejecucion_Global.bulkAdd(incoming);
+            }
+            if (restoreLog && pendingImportData.Notas_Ejercicio?.length) {
+                // Las notas van junto con el historial: son persistentes entre ciclos.
+                // put() sobreescribe por Ejercicio (clave única), no duplica.
+                await db.Notas_Ejercicio.bulkPut(pendingImportData.Notas_Ejercicio);
             }
             if (restorePlan && pendingImportData.Planificacion_Actual?.length) {
                 await db.Planificacion_Actual.clear();
@@ -1612,6 +1643,12 @@ ui.importModalConfirm.addEventListener('click', async () => {
                 await db.Planificacion_Actual.bulkAdd(incoming);
             }
         });
+
+        // Los estados de "Finalizado" van junto con la planificación (localStorage, fuera de IndexedDB)
+        if (restorePlan && pendingImportData.finishedFlags) {
+            Object.keys(localStorage).forEach(k => { if (k.startsWith('finished_')) localStorage.removeItem(k); });
+            Object.entries(pendingImportData.finishedFlags).forEach(([k, v]) => localStorage.setItem(k, v));
+        }
 
         pendingImportData = null;
         const partes = [];
@@ -1683,6 +1720,24 @@ ui.btnReset.addEventListener('click', () => {
             await db.Planificacion_Actual.clear();
             Object.keys(localStorage).forEach(k => { if (k.startsWith('finished_')) localStorage.removeItem(k); });
             localStorage.removeItem('activeWeek'); runEngine();
+        }
+    });
+});
+
+// =====================================================================
+// BORRAR HISTORIAL COMPLETO (Ajustes → Zona de Peligro)
+// =====================================================================
+ui.btnClearHistory.addEventListener('click', () => {
+    showModal({
+        title: 'Borrar historial completo',
+        body: 'Se eliminarán todas las series registradas de forma permanente. Esta acción no se puede deshacer. ¿Exportaste una copia de seguridad?',
+        confirmLabel: 'Borrar historial', confirmClass: 'bg-red-600 text-white hover:bg-red-500',
+        onConfirm: async () => {
+            await db.Log_Ejecucion_Global.clear();
+            // Sin series registradas, ningún entreno debería seguir marcado como finalizado
+            Object.keys(localStorage).forEach(k => { if (k.startsWith('finished_')) localStorage.removeItem(k); });
+            refreshSettingsStats();
+            toast('Historial borrado', 'red');
         }
     });
 });
