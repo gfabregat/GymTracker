@@ -126,20 +126,18 @@
                             </svg>
                         </div>
                         <div>
-                            <p id="timer-mode-label" class="text-[10px] text-slate-500 font-medium uppercase tracking-wider leading-none mb-0.5">Cronómetro</p>
                             <p id="timer-display" class="text-2xl font-black tabular-nums text-slate-100 leading-none"></p>
                         </div>
                     </div>
                     <div class="flex items-center gap-2 shrink-0">
-                        <button id="timer-plus"  class="h-9 px-3 rounded-xl bg-slate-700/80 hover:bg-slate-600 text-slate-300 text-xs font-bold transition-all active:scale-95">+30s</button>
                         <button id="timer-pause" class="h-9 w-9 flex items-center justify-center rounded-xl bg-slate-700/80 hover:bg-slate-600 text-slate-300 transition-all active:scale-95" title="Pausa / Reanudar"><svg id="timer-pause-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" class="w-4 h-4"><path d="M5.75 3a.75.75 0 0 0-.75.75v12.5c0 .414.336.75.75.75h1.5a.75.75 0 0 0 .75-.75V3.75A.75.75 0 0 0 7.25 3h-1.5ZM12.75 3a.75.75 0 0 0-.75.75v12.5c0 .414.336.75.75.75h1.5a.75.75 0 0 0 .75-.75V3.75a.75.75 0 0 0-.75-.75h-1.5Z"/></svg><svg id="timer-play-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" class="w-4 h-4 hidden"><path d="M6.3 2.84A1.5 1.5 0 0 0 4 4.11v11.78a1.5 1.5 0 0 0 2.3 1.27l9.344-5.891a1.5 1.5 0 0 0 0-2.538L6.3 2.84Z"/></svg></button>
                         <button id="timer-skip"  class="h-9 w-9 flex items-center justify-center rounded-xl bg-slate-700/80 hover:bg-slate-600 text-slate-300 transition-all active:scale-95" title="Skip"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" class="w-4 h-4"><path d="M3.288 4.818A1.5 1.5 0 0 0 1 6.095v7.81a1.5 1.5 0 0 0 2.288 1.277l6.803-3.905a1.5 1.5 0 0 0 0-2.554L3.288 4.818ZM13 4.75a.75.75 0 0 1 .75-.75h.5a.75.75 0 0 1 .75.75v10.5a.75.75 0 0 1-.75.75h-.5a.75.75 0 0 1-.75-.75V4.75Z"/></svg></button>
-                        <button id="timer-mute"  class="h-9 w-9 flex items-center justify-center rounded-xl bg-slate-700/80 hover:bg-slate-600 text-slate-300 transition-all active:scale-95" title="Silenciar">
-                            <svg id="mute-icon-on" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" class="w-4 h-4">
-                                <path d="M10 3.75a.75.75 0 0 0-1.264-.546L4.703 7H3.167a.75.75 0 0 0-.7.48A6.985 6.985 0 0 0 2 10c0 .887.165 1.737.468 2.52.111.29.39.48.7.48h1.535l4.033 3.796A.75.75 0 0 0 10 16.25V3.75ZM15.95 5.05a.75.75 0 0 0-1.06 1.061 5.5 5.5 0 0 1 0 7.778.75.75 0 0 0 1.06 1.06 7 7 0 0 0 0-9.899ZM13.829 7.172a.75.75 0 0 0-1.061 1.06 2.5 2.5 0 0 1 0 3.536.75.75 0 0 0 1.06 1.06 4 4 0 0 0 0-5.656Z"/>
-                            </svg>
-                            <svg id="mute-icon-off" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" class="w-4 h-4 hidden text-slate-500">
-                                <path d="M9.547 3.062A.75.75 0 0 1 10 3.75v12.5a.75.75 0 0 1-1.264.546L4.703 13H3.167a.75.75 0 0 1-.7-.48A6.985 6.985 0 0 1 2 10c0-.887.165-1.737.468-2.52a.75.75 0 0 1 .7-.48h1.535l4.033-3.796a.75.75 0 0 1 .811-.142ZM13.28 7.22a.75.75 0 1 0-1.06 1.06L13.94 10l-1.72 1.72a.75.75 0 0 0 1.06 1.06L15 11.06l1.72 1.72a.75.75 0 1 0 1.06-1.06L16.06 10l1.72-1.72a.75.75 0 0 0-1.06-1.06L15 8.94l-1.72-1.72Z"/>
+                        <button id="timer-volume" class="h-9 w-9 flex items-center justify-center rounded-xl bg-slate-700/80 hover:bg-slate-600 text-slate-300 transition-all active:scale-95" title="Volumen">
+                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" class="w-4 h-4">
+                                <path id="vol-muted-icon" class="hidden" d="M9.547 3.062A.75.75 0 0 1 10 3.75v12.5a.75.75 0 0 1-1.264.546L4.703 13H3.167a.75.75 0 0 1-.7-.48A6.985 6.985 0 0 1 2 10c0-.887.165-1.737.468-2.52a.75.75 0 0 1 .7-.48h1.535l4.033-3.796a.75.75 0 0 1 .811-.142ZM13.28 7.22a.75.75 0 1 0-1.06 1.06L13.94 10l-1.72 1.72a.75.75 0 0 0 1.06 1.06L15 11.06l1.72 1.72a.75.75 0 1 0 1.06-1.06L16.06 10l1.72-1.72a.75.75 0 0 0-1.06-1.06L15 8.94l-1.72-1.72Z"/>
+                                <path id="vol-cone-icon" d="M10 3.75a.75.75 0 0 0-1.264-.546L4.703 7H3.167a.75.75 0 0 0-.7.48A6.985 6.985 0 0 0 2 10c0 .887.165 1.737.468 2.52.111.29.39.48.7.48h1.535l4.033 3.796A.75.75 0 0 0 10 16.25V3.75Z"/>
+                                <path id="vol-arc-inner-icon" d="M13.829 7.172a.75.75 0 0 0-1.061 1.06 2.5 2.5 0 0 1 0 3.536.75.75 0 0 0 1.06 1.06 4 4 0 0 0 0-5.656Z"/>
+                                <path id="vol-arc-outer-icon" d="M15.95 5.05a.75.75 0 0 0-1.06 1.061 5.5 5.5 0 0 1 0 7.778.75.75 0 0 0 1.06 1.06 7 7 0 0 0 0-9.899Z"/>
                             </svg>
                         </button>
                     </div>
@@ -487,7 +485,6 @@ const ui = {
     timerWidget:           document.getElementById('timer-widget'),
     timerDisplay:          document.getElementById('timer-display'),
     timerBar:              document.getElementById('timer-bar'),
-    timerPlus:             document.getElementById('timer-plus'),
     timerPause:            document.getElementById('timer-pause'),
     timerSkip:             document.getElementById('timer-skip'),
     // Pantalla 4
@@ -567,8 +564,10 @@ function showModal({ title, body, confirmLabel, confirmClass, onConfirm }) {
 // 7A. AUDIO (Web Audio API)
 // Mezcla sobre cualquier audio del sistema (podcast, música) sin interrumpirlo.
 // =====================================================================
-let audioCtx      = null;   // se crea la primera vez que se usa (requiere gesto previo)
-let audioMuted    = false;
+let audioCtx        = null;   // se crea la primera vez que se usa (requiere gesto previo)
+// Niveles de volumen cíclicos: 0=Silencio, 1=Bajo, 2=Medio, 3=Alto
+let audioVolumeLevel = 2; // default: Medio (equivalente al volumen original antes de agregar niveles)
+const AUDIO_VOLUME_FACTORS = [0, 0.5, 1.0, 1.6];
 
 function audioGetCtx() {
     if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
@@ -577,10 +576,12 @@ function audioGetCtx() {
 }
 
 // Reproduce un tono sintético
-// freq: Hz | duration: segundos | volume: 0-1 | type: oscilador ('sine','square','triangle')
-// attack/release: segundos de fade in/out para evitar clicks
+// freq: Hz | duration: segundos | volume: 0-1 (volumen base, se escala por el nivel actual)
+// type: oscilador ('sine','square','triangle') | attack/release: fade in/out para evitar clicks
 function audioBeep({ freq = 220, duration = 0.08, volume = 0.18, type = 'sine', attack = 0.005, release = 0.04 } = {}) {
-    if (audioMuted) return;
+    const factor = AUDIO_VOLUME_FACTORS[audioVolumeLevel];
+    if (factor === 0) return;
+    const scaledVolume = volume * factor;
     try {
         const ctx  = audioGetCtx();
         const osc  = ctx.createOscillator();
@@ -590,8 +591,8 @@ function audioBeep({ freq = 220, duration = 0.08, volume = 0.18, type = 'sine', 
         osc.type      = type;
         osc.frequency.setValueAtTime(freq, ctx.currentTime);
         gain.gain.setValueAtTime(0, ctx.currentTime);
-        gain.gain.linearRampToValueAtTime(volume, ctx.currentTime + attack);
-        gain.gain.setValueAtTime(volume, ctx.currentTime + duration - release);
+        gain.gain.linearRampToValueAtTime(scaledVolume, ctx.currentTime + attack);
+        gain.gain.setValueAtTime(scaledVolume, ctx.currentTime + duration - release);
         gain.gain.linearRampToValueAtTime(0, ctx.currentTime + duration);
         osc.start(ctx.currentTime);
         osc.stop(ctx.currentTime + duration);
@@ -621,13 +622,31 @@ function audioCountdownCue(secsLeft) {
     }
 }
 
-// Toggle mute
-function audioToggleMute() {
-    audioMuted = !audioMuted;
-    document.getElementById('mute-icon-on').classList.toggle('hidden', audioMuted);
-    document.getElementById('mute-icon-off').classList.toggle('hidden', !audioMuted);
-    document.getElementById('timer-mute').classList.toggle('text-slate-500', audioMuted);
-    document.getElementById('timer-mute').classList.toggle('text-slate-300', !audioMuted);
+// Cicla al siguiente nivel de volumen: Silencio → Bajo → Medio → Alto → Silencio...
+function audioCycleVolume() {
+    audioVolumeLevel = (audioVolumeLevel + 1) % 4;
+    audioUpdateVolumeIcon();
+}
+
+// Actualiza el ícono según el nivel actual (cono siempre visible salvo en silencio;
+// las ondas se acumulan progresivamente: 0 ondas=Bajo, 1 onda=Medio, 2 ondas=Alto)
+function audioUpdateVolumeIcon() {
+    const muted  = document.getElementById('vol-muted-icon');
+    const cone   = document.getElementById('vol-cone-icon');
+    const inner  = document.getElementById('vol-arc-inner-icon');
+    const outer  = document.getElementById('vol-arc-outer-icon');
+    const btn    = document.getElementById('timer-volume');
+
+    muted.classList.toggle('hidden', audioVolumeLevel !== 0);
+    cone.classList.toggle('hidden', audioVolumeLevel === 0);
+    inner.classList.toggle('hidden', audioVolumeLevel < 2);
+    outer.classList.toggle('hidden', audioVolumeLevel < 3);
+
+    btn.classList.toggle('text-slate-500', audioVolumeLevel === 0);
+    btn.classList.toggle('text-slate-300', audioVolumeLevel !== 0);
+
+    const labels = ['Silencio', 'Volumen bajo', 'Volumen medio', 'Volumen alto'];
+    btn.title = labels[audioVolumeLevel];
 }
 
 // =====================================================================
@@ -652,7 +671,6 @@ function timerStart(seconds) {
     timerMode = 'countdown';
     timerRemaining = seconds; timerTotal = seconds; timerPaused = false;
     timerElapsed = 0;
-    document.getElementById('timer-mode-label').textContent = 'DESCANSO';
     ui.timerWidget.classList.remove('timer-alert');
     document.getElementById('timer-pause-icon').classList.remove('hidden');
     document.getElementById('timer-play-icon').classList.add('hidden');
@@ -679,15 +697,15 @@ function timerCountdownFinished() {
 }
 
 // Inicia (o reinicia) el modo stopwatch (cuenta hacia arriba)
-function timerStartStopwatch() {
+// startPaused: si es true, arranca detenido (usado al entrar al entrenamiento)
+function timerStartStopwatch(startPaused = false) {
     timerStop();
     timerMode = 'stopwatch';
-    timerElapsed = 0; timerPaused = false;
+    timerElapsed = 0; timerPaused = startPaused;
     timerTotal = 0; timerRemaining = 0;
-    document.getElementById('timer-mode-label').textContent = 'CRONÓMETRO';
     ui.timerWidget.classList.remove('timer-alert');
-    document.getElementById('timer-pause-icon').classList.remove('hidden');
-    document.getElementById('timer-play-icon').classList.add('hidden');
+    document.getElementById('timer-pause-icon').classList.toggle('hidden', startPaused);
+    document.getElementById('timer-play-icon').classList.toggle('hidden', !startPaused);
     ui.timerBar.style.width = '100%';
     ui.timerBar.classList.remove('bg-red-500', 'bg-indigo-500'); ui.timerBar.classList.add('bg-emerald-500');
     ui.timerDisplay.textContent = timerFormat(0);
@@ -739,7 +757,7 @@ function timerHide() {
 function timerInitWorkout() {
     // Reanudar AudioContext si estaba suspendido
     if (audioCtx && audioCtx.state === 'suspended') audioCtx.resume();
-    timerStartStopwatch();
+    timerStartStopwatch(true); // arranca en pausa al entrar al entrenamiento
 
     const header    = document.getElementById('workout-header');
     const container = document.getElementById('exercises-container');
@@ -773,24 +791,6 @@ function timerInitWorkout() {
     }
 }
 
-ui.timerPlus.addEventListener('click', () => {
-    if (timerMode === 'countdown') {
-        timerRemaining += 30; timerTotal = Math.max(timerTotal, timerRemaining);
-        ui.timerWidget.classList.remove('timer-alert');
-        updateTimerDisplay();
-        // si estaba detenido, rearrancar el interval
-        if (!timerInterval) {
-            timerInterval = setInterval(() => {
-                if (timerPaused) return;
-                timerRemaining--;
-                updateTimerDisplay();
-                if (timerRemaining <= 0) { timerStop(); timerCountdownFinished(); }
-            }, 1000);
-        }
-    } else {
-        // en stopwatch, +30s no tiene sentido; ignorar o podrías agregar un countdown manual
-    }
-});
 ui.timerPause.addEventListener('click', () => {
     timerPaused = !timerPaused;
     document.getElementById('timer-pause-icon').classList.toggle('hidden', timerPaused);
@@ -802,7 +802,8 @@ ui.timerSkip.addEventListener('click', () => {
     timerStop();
     timerStartStopwatch();
 });
-document.getElementById('timer-mute').addEventListener('click', audioToggleMute);
+document.getElementById('timer-volume').addEventListener('click', audioCycleVolume);
+audioUpdateVolumeIcon(); // aplicar estado inicial del ícono
 
 // =====================================================================
 // 8. NAVEGACIÓN
@@ -1234,12 +1235,12 @@ function buildSerieRow(serieRow, existingLogs, prevWeekLogs) {
                 <span class="w-7 text-center text-xs font-black text-slate-500 shrink-0">${serieRow.Serie}</span>
                 <div class="flex-1 flex gap-2">
                     <div class="flex-1 relative">
-                        <input type="number" inputmode="decimal" placeholder="kg" value="${editMode ? pesoVal : (!done ? '' : pesoVal)}"
+                        <input type="number" inputmode="decimal" enterkeyhint="done" placeholder="kg" value="${editMode ? pesoVal : (!done ? '' : pesoVal)}"
                             class="w-full bg-slate-800 border ${editMode ? 'border-indigo-500/60' : 'border-slate-700/60'} rounded-xl px-3 py-2.5 text-base font-bold text-center text-slate-100 placeholder-slate-600 focus:outline-none focus:border-indigo-500/60 transition-colors" data-field="peso" />
                         <span class="absolute right-2.5 top-1/2 -translate-y-1/2 text-[10px] text-slate-500 pointer-events-none">kg</span>
                     </div>
                     <div class="flex-1">
-                        <input type="number" inputmode="numeric" placeholder="reps" value="${editMode ? repsVal : (!done ? '' : repsVal)}"
+                        <input type="number" inputmode="numeric" enterkeyhint="done" placeholder="reps" value="${editMode ? repsVal : (!done ? '' : repsVal)}"
                             class="w-full bg-slate-800 border ${editMode ? 'border-indigo-500/60' : 'border-slate-700/60'} rounded-xl px-3 py-2.5 text-base font-bold text-center text-slate-100 placeholder-slate-600 focus:outline-none focus:border-indigo-500/60 transition-colors" data-field="reps" />
                     </div>
                 </div>
@@ -1276,6 +1277,16 @@ function buildSerieRow(serieRow, existingLogs, prevWeekLogs) {
                 row.classList.remove('serie-done');
                 renderRow(true);
                 setTimeout(() => row.querySelector('[data-field="peso"]').focus(), 50);
+            });
+        }
+
+        // Enter/OK del teclado virtual dispara el botón principal (check o guardar)
+        const mainBtn = row.querySelector('[data-action="check"]') || row.querySelector('[data-action="save-edit"]');
+        if (mainBtn) {
+            [row.querySelector('[data-field="peso"]'), row.querySelector('[data-field="reps"]')].forEach(input => {
+                input.addEventListener('keydown', e => {
+                    if (e.key === 'Enter') { e.preventDefault(); mainBtn.click(); }
+                });
             });
         }
     };
