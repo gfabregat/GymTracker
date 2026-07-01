@@ -773,11 +773,12 @@ function timerInitWorkout() {
     const container = document.getElementById('exercises-container');
 
     // --- ResizeObserver: ajusta padding-top cuando el header cambia de alto ---
+    // Importante: NO usar entry.contentRect.height, ya que excluye padding y borde
+    // (a diferencia de offsetHeight). Usar siempre offsetHeight para consistencia,
+    // el ResizeObserver solo actúa como disparador de recálculo.
     if (window._workoutHeaderObserver) window._workoutHeaderObserver.disconnect();
-    window._workoutHeaderObserver = new ResizeObserver(entries => {
-        for (const entry of entries) {
-            container.style.paddingTop = (entry.contentRect.height + 16) + 'px';
-        }
+    window._workoutHeaderObserver = new ResizeObserver(() => {
+        container.style.paddingTop = (header.offsetHeight + 16) + 'px';
     });
     window._workoutHeaderObserver.observe(header);
     container.style.paddingTop = (header.offsetHeight + 16) + 'px';
@@ -1003,6 +1004,7 @@ function buildWorkoutCard(sessionName, exerciseCount, seriesCount, hasSuperset, 
 // =====================================================================
 async function navigateToWorkout(sessionName, semana) {
     activeSession = sessionName; activeSessionWeek = semana; timerHide();
+    collapsedExerciseKeys = new Set(); // todos los ejercicios arrancan expandidos
     ui.workoutTitle.textContent = sessionName; ui.workoutSubtitle.textContent = `Semana ${semana}`;
     ui.exercisesContainer.innerHTML = '';
     const rows = await db.Planificacion_Actual.where('Semana').equals(semana).and(r => r.Entrenamiento === sessionName).toArray();
@@ -1053,7 +1055,8 @@ async function navigateToWorkout(sessionName, semana) {
 }
 
 // Helper: construye el header de un ejercicio (compartido entre normal y superserie)
-function buildExerciseHeader(Ejercicio, Codigo_Orden, isSuperset, isCompact) {
+// collapseKey: identificador único del ejercicio (Codigo_Orden) para el toggle de colapso
+function buildExerciseHeader(Ejercicio, Codigo_Orden, isSuperset, isCompact, collapseKey) {
     const wrapper = document.createElement('div');
     wrapper.className = isCompact ? 'flex items-center justify-between gap-2 pt-1' : 'flex items-start justify-between gap-2';
     const codeBadgeClass = isSuperset
@@ -1074,9 +1077,13 @@ function buildExerciseHeader(Ejercicio, Codigo_Orden, isSuperset, isCompact) {
             <button class="w-8 h-8 flex items-center justify-center rounded-xl bg-slate-800/80 hover:bg-slate-700 text-slate-400 hover:text-indigo-400 transition-all active:scale-95" data-action="history-lookup">
                 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" class="w-3.5 h-3.5"><path fill-rule="evenodd" d="M9 3.5a5.5 5.5 0 1 0 0 11 5.5 5.5 0 0 0 0-11ZM2 9a7 7 0 1 1 12.452 4.391l3.328 3.329a.75.75 0 1 1-1.06 1.06l-3.329-3.328A7 7 0 0 1 2 9Z" clip-rule="evenodd" /></svg>
             </button>
+            <button class="w-8 h-8 flex items-center justify-center rounded-xl bg-slate-800/80 hover:bg-slate-700 text-slate-400 hover:text-indigo-300 transition-all active:scale-95" data-action="toggle-collapse" data-collapse-key="${collapseKey}" title="Colapsar/expandir">
+                <svg data-collapse-chevron="${collapseKey}" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" class="w-3.5 h-3.5 transition-transform duration-200"><path fill-rule="evenodd" d="M5.22 7.22a.75.75 0 0 1 1.06 0L10 10.94l3.72-3.72a.75.75 0 1 1 1.06 1.06l-4.25 4.25a.75.75 0 0 1-1.06 0L5.22 8.28a.75.75 0 0 1 0-1.06Z" clip-rule="evenodd" /></svg>
+            </button>
         </div>`;
     wrapper.querySelector('[data-action="youtube-search"]').addEventListener('click', e => { e.stopPropagation(); window.open('https://www.youtube.com/results?search_query=' + encodeURIComponent(Ejercicio), '_blank'); });
     wrapper.querySelector('[data-action="history-lookup"]').addEventListener('click', e => { e.stopPropagation(); openHistoryModal(Ejercicio); });
+    wrapper.querySelector('[data-action="toggle-collapse"]').addEventListener('click', e => { e.stopPropagation(); toggleExerciseCollapse(collapseKey); });
     return wrapper;
 }
 
@@ -1147,12 +1154,22 @@ function buildExerciseBlock(exGroup, isSuperset, existingLogs, prevWeekLogs, sho
     const block = document.createElement('div');
     block.className = isSuperset ? 'bg-violet-950/10 px-4 py-3 space-y-3' : 'bg-slate-900 border border-slate-800/70 rounded-2xl px-4 py-4 space-y-3';
 
-    if (showHeader) {
-        block.appendChild(buildExerciseHeader(Ejercicio, Codigo_Orden, isSuperset, false));
+    // Clave de colapso: identifica el ejercicio dentro de la sesión (ej. "A1", "B").
+    // En superseries, todas las filas de un mismo sub-ejercicio comparten esta clave
+    // aunque estén intercaladas físicamente con el otro sub-ejercicio.
+    const collapseKey = Codigo_Orden;
 
-        // Nota del ejercicio (persistente)
+    if (showHeader) {
+        block.appendChild(buildExerciseHeader(Ejercicio, Codigo_Orden, isSuperset, false, collapseKey));
+
+        // Body colapsable: nota + meta + divider + serie(s) de esta aparición
+        const body = document.createElement('div');
+        body.dataset.collapseKey = collapseKey;
+        body.dataset.role = 'collapse-body';
+        body.className = 'space-y-3';
+
         const notaActual = notasMap[Ejercicio] || '';
-        block.appendChild(buildNoteWidget(Ejercicio, notaActual));
+        body.appendChild(buildNoteWidget(Ejercicio, notaActual));
 
         const ref = series[0];
         const tempoDisplay    = ref.Tempo && ref.Tempo !== '0' && ref.Tempo !== '0000' ? ref.Tempo : '—';
@@ -1162,13 +1179,39 @@ function buildExerciseBlock(exGroup, isSuperset, existingLogs, prevWeekLogs, sho
         const metaEl = document.createElement('div');
         metaEl.className = 'flex gap-x-4 gap-y-0.5 flex-wrap px-1';
         metaEl.innerHTML = `<span class="text-[11px] text-slate-400"><span class="text-slate-500 font-medium">Obj.</span> ${ref.Reps_Objetivo} reps</span>${rirDisplay ? `<span class="text-[11px] text-slate-400"><span class="text-slate-500 font-medium">Int.</span> ${rirDisplay}</span>` : ''}<span class="text-[11px] text-slate-400"><span class="text-slate-500 font-medium">Tempo</span> ${tempoDisplay}</span><span class="text-[11px] text-slate-400"><span class="text-slate-500 font-medium">Desc.</span> ${descansoDisplay}</span>`;
-        block.appendChild(metaEl);
-        block.appendChild(Object.assign(document.createElement('div'), { className: 'border-t border-slate-800/60' }));
+        body.appendChild(metaEl);
+        body.appendChild(Object.assign(document.createElement('div'), { className: 'border-t border-slate-800/60' }));
+
+        series.forEach(serieRow => body.appendChild(buildSerieRow(serieRow, existingLogs, prevWeekLogs)));
+        block.appendChild(body);
     } else if (isSuperset) {
-        block.appendChild(buildExerciseHeader(Ejercicio, Codigo_Orden, isSuperset, true));
+        // Series subsecuentes del mismo sub-ejercicio dentro de una superserie.
+        // No repetimos el header (ya se mostró en la primera aparición de este
+        // Codigo_Orden); solo marcamos estas filas con la misma collapseKey
+        // para que el toggle del header original también las oculte/muestre.
+        const body = document.createElement('div');
+        body.dataset.collapseKey = collapseKey;
+        body.dataset.role = 'collapse-body';
+        series.forEach(serieRow => body.appendChild(buildSerieRow(serieRow, existingLogs, prevWeekLogs)));
+        block.appendChild(body);
     }
-    series.forEach(serieRow => block.appendChild(buildSerieRow(serieRow, existingLogs, prevWeekLogs)));
     return block;
+}
+
+// Estado de ejercicios colapsados en la sesión actual (se resetea al entrar a un entrenamiento)
+let collapsedExerciseKeys = new Set();
+
+function toggleExerciseCollapse(key) {
+    const nowCollapsed = !collapsedExerciseKeys.has(key);
+    if (nowCollapsed) collapsedExerciseKeys.add(key);
+    else collapsedExerciseKeys.delete(key);
+
+    document.querySelectorAll(`[data-collapse-key="${key}"][data-role="collapse-body"]`).forEach(el => {
+        el.classList.toggle('hidden', nowCollapsed);
+    });
+    document.querySelectorAll(`[data-collapse-chevron="${key}"]`).forEach(icon => {
+        icon.classList.toggle('-rotate-90', nowCollapsed);
+    });
 }
 
 function buildSerieRow(serieRow, existingLogs, prevWeekLogs) {
