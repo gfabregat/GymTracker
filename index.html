@@ -1029,6 +1029,18 @@ async function navigateToWorkout(sessionName, semana) {
     const existingLogs = await db.Log_Ejecucion_Global.where('Entrenamiento').equals(sessionName).and(r => r.Semana === semana).toArray();
     const prevWeekLogs = semana > 1 ? await db.Log_Ejecucion_Global.where('Entrenamiento').equals(sessionName).and(r => r.Semana === semana-1).toArray() : [];
 
+    // Reflejar si este entrenamiento ya fue marcado como finalizado
+    const isFinished = localStorage.getItem(`finished_${semana}_${sessionName}`) === 'true';
+    if (isFinished) {
+        ui.btnFinish.disabled = true;
+        ui.btnFinish.textContent = '✓ Entrenamiento finalizado';
+        ui.btnFinish.className = 'w-full bg-slate-800 text-slate-500 font-bold py-4 rounded-2xl text-base tracking-wide border border-slate-700/50 cursor-not-allowed';
+    } else {
+        ui.btnFinish.disabled = false;
+        ui.btnFinish.textContent = 'Finalizar Entrenamiento';
+        ui.btnFinish.className = 'w-full bg-emerald-600 hover:bg-emerald-500 active:scale-[0.98] text-white font-bold py-4 rounded-2xl transition-all shadow-xl shadow-emerald-900/30 text-base tracking-wide border border-emerald-500/50';
+    }
+
     const blockKeys = [], blockMap = {};
     rows.forEach(row => {
         const isSuperset = /\d$/.test(row.Codigo_Orden);
@@ -1652,8 +1664,8 @@ ui.importModalConfirm.addEventListener('click', async () => {
 
         pendingImportData = null;
         const partes = [];
-        if (restoreLog)  partes.push('historial');
-        if (restorePlan) partes.push('planificación');
+        if (restoreLog)  partes.push('Historial');
+        if (restorePlan) partes.push('Planificación');
         toast(`✓ ${partes.join(' y ')} restaurado${partes.length > 1 ? 's' : ''}`, 'emerald');
         refreshSettingsStats();
 
