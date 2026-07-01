@@ -522,6 +522,16 @@ const ui = {
 function normalizeText(str) {
     return String(str).toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
 }
+// Prioriza RIR sobre RPE en un campo de intensidad:
+// - Si hay RIR (solo o combinado con RPE, ej "RPE 8 / RIR 2") → devuelve solo "RIR 2"
+// - Si solo hay RPE (sin RIR) → devuelve el campo completo tal cual (ej "RPE 8")
+// - Si el campo está vacío → devuelve ''
+function extractRIR(intensidadStr) {
+    if (!intensidadStr) return '';
+    const match = String(intensidadStr).match(/RIR\s*[\d.]+(?:\s*[-–]\s*[\d.]+)?/i);
+    if (match) return match[0].trim().toUpperCase().replace(/^RIR/, 'RIR ').replace(/\s+/g, ' ');
+    return String(intensidadStr).trim(); // no hay RIR: mostrar el campo tal cual (ej. solo RPE)
+}
 function formatDate(isoString) {
     return new Date(isoString).toLocaleDateString('es-AR', { day: '2-digit', month: 'short', year: 'numeric' });
 }
@@ -1148,9 +1158,10 @@ function buildExerciseBlock(exGroup, isSuperset, existingLogs, prevWeekLogs, sho
         const tempoDisplay    = ref.Tempo && ref.Tempo !== '0' && ref.Tempo !== '0000' ? ref.Tempo : '—';
         const descansoSecs    = ref.Descanso_Segundos;
         const descansoDisplay = descansoSecs ? (descansoSecs >= 60 ? `${Math.floor(descansoSecs/60)}min${descansoSecs%60>0?descansoSecs%60+'s':''}` : `${descansoSecs}s`) : '—';
+        const rirDisplay = extractRIR(ref.Intensidad_Objetivo);
         const metaEl = document.createElement('div');
         metaEl.className = 'flex gap-x-4 gap-y-0.5 flex-wrap px-1';
-        metaEl.innerHTML = `<span class="text-[11px] text-slate-400"><span class="text-slate-500 font-medium">Obj.</span> ${ref.Reps_Objetivo} reps</span><span class="text-[11px] text-slate-400"><span class="text-slate-500 font-medium">Int.</span> ${ref.Intensidad_Objetivo}</span><span class="text-[11px] text-slate-400"><span class="text-slate-500 font-medium">Tempo</span> ${tempoDisplay}</span><span class="text-[11px] text-slate-400"><span class="text-slate-500 font-medium">Desc.</span> ${descansoDisplay}</span>`;
+        metaEl.innerHTML = `<span class="text-[11px] text-slate-400"><span class="text-slate-500 font-medium">Obj.</span> ${ref.Reps_Objetivo} reps</span>${rirDisplay ? `<span class="text-[11px] text-slate-400"><span class="text-slate-500 font-medium">Int.</span> ${rirDisplay}</span>` : ''}<span class="text-[11px] text-slate-400"><span class="text-slate-500 font-medium">Tempo</span> ${tempoDisplay}</span><span class="text-[11px] text-slate-400"><span class="text-slate-500 font-medium">Desc.</span> ${descansoDisplay}</span>`;
         block.appendChild(metaEl);
         block.appendChild(Object.assign(document.createElement('div'), { className: 'border-t border-slate-800/60' }));
     } else if (isSuperset) {
@@ -1176,12 +1187,11 @@ function buildSerieRow(serieRow, existingLogs, prevWeekLogs) {
 
     // Meta compacta por serie: RIR y reps objetivo (sin RPE)
     const repsObj  = serieRow.Reps_Objetivo || '';
-    const intObj   = serieRow.Intensidad_Objetivo || '';
-    const showInt  = intObj && !intObj.toUpperCase().startsWith('RPE');
+    const rirVal   = extractRIR(serieRow.Intensidad_Objetivo);
     const tempoVal = serieRow.Tempo && serieRow.Tempo !== '0' && serieRow.Tempo !== '0000' ? serieRow.Tempo : '';
     const metaParts = [];
     if (repsObj)  metaParts.push(`<span class="text-slate-500">Obj.</span> ${repsObj}`);
-    if (showInt)  metaParts.push(`${intObj}`);
+    if (rirVal)   metaParts.push(`${rirVal}`);
     if (tempoVal) metaParts.push(`<span class="text-slate-500">Tempo</span> ${tempoVal}`);
     const metaHtml = metaParts.length
         ? `<p class="text-[10px] text-slate-500 px-1 leading-tight">${metaParts.join(' · ')}</p>`
